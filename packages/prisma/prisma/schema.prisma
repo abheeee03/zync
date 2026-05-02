@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String      @id @default(uuid())
+  name      String
+  email     String      @unique
+  password  String
+  workflows Workflows[]
+}
+
+model Workflows {
+  id        String   @id @default(uuid())
+  name      String
+  userId    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  trigger   Trigger?
+  actions   Action[]
+  user      User     @relation(references: [id], fields: [userId])
+}
+
+model Trigger {
+  id               String            @id @default(uuid())
+  userId           String
+  triggerId        String
+  workflowId       String            @unique
+  availbleTriggers AvailableTriggers @relation(references: [id], fields: [triggerId])
+  workflow         Workflows         @relation(references: [id], fields: [workflowId])
+}
+
+model Action {
+  id         String           @id @default(uuid())
+  actionId   String
+  workflowId String
+  order      Int              @default(0)
+  metaData   Json             @default("{}")
+  action     AvailableActions @relation(references: [id], fields: [actionId])
+  workflow   Workflows        @relation(references: [id], fields: [workflowId])
+}
+
+model AvailableTriggers {
+  id      String    @id @default(uuid())
+  name    String
+  trigger Trigger[]
+}
+
+model AvailableActions {
+  id     String   @id @default(uuid())
+  name   String
+  action Action[]
+}
