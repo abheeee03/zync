@@ -9,8 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@repo/prisma": "workspace:*",
+    "@repo/shared": "workspace:*",
     "@hugeicons/core-free-icons": "^4.1.1",
     "@hugeicons/react": "^1.1.6",
+    "axios": "^1.16.0",
+    "better-auth": "^1.6.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "next": "16.2.4",

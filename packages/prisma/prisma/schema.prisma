@@ -1,58 +1,110 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+    provider = "prisma-client"
+    output   = "../generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+    provider = "postgresql"
 }
 
 model User {
-  id        String      @id @default(uuid())
-  name      String
-  email     String      @unique
-  password  String
-  workflows Workflows[]
+    id            String      @id
+    name          String
+    email         String      @unique
+    emailVerified Boolean
+    image         String?
+    createdAt     DateTime    @db.Timestamptz(3)
+    updatedAt     DateTime    @db.Timestamptz(3)
+    workflow      Workflows[]
+    session       Session[]
+    account       Account[]
+
+    @@map("user")
+}
+
+model Session {
+    id        String   @id
+    user      User     @relation(fields: [userId], references: [id])
+    userId    String
+    token     String   @unique
+    expiresAt DateTime @db.Timestamptz(3)
+    ipAddress String?
+    userAgent String?
+    createdAt DateTime @db.Timestamptz(3)
+    updatedAt DateTime @db.Timestamptz(3)
+
+    @@map("session")
+}
+
+model Account {
+    id                    String    @id
+    user                  User      @relation(fields: [userId], references: [id])
+    userId                String
+    accountId             String
+    providerId            String
+    accessToken           String?
+    refreshToken          String?
+    accessTokenExpiresAt  DateTime? @db.Timestamptz(3)
+    refreshTokenExpiresAt DateTime? @db.Timestamptz(3)
+    scope                 String?
+    idToken               String?
+    password              String?
+    createdAt             DateTime  @db.Timestamptz(3)
+    updatedAt             DateTime  @db.Timestamptz(3)
+
+    @@map("account")
+}
+
+model Verification {
+    id         String   @id
+    identifier String
+    value      String
+    expiresAt  DateTime @db.Timestamptz(3)
+    createdAt  DateTime @db.Timestamptz(3)
+    updatedAt  DateTime @db.Timestamptz(3)
+
+    @@map("verification")
 }
 
 model Workflows {
-  id        String   @id @default(uuid())
-  name      String
-  userId    String
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  trigger   Trigger?
-  actions   Action[]
-  user      User     @relation(references: [id], fields: [userId])
+    id        String   @id @default(uuid())
+    name      String?  @default("Untitled")
+    userId    String
+    isActive  Boolean  @default(true)
+    createdAt DateTime @default(now())
+    trigger   Trigger?
+    actions   Action[]
+    user      User     @relation(references: [id], fields: [userId])
 }
 
 model Trigger {
-  id               String            @id @default(uuid())
-  userId           String
-  triggerId        String
-  workflowId       String            @unique
-  availbleTriggers AvailableTriggers @relation(references: [id], fields: [triggerId])
-  workflow         Workflows         @relation(references: [id], fields: [workflowId])
+    id               String            @id @default(uuid())
+    userId           String
+    triggerId        String
+    workflowId       String            @unique
+    metaData         Json              @default("{}")
+    availbleTriggers AvailableTriggers @relation(references: [id], fields: [triggerId])
+    workflow         Workflows         @relation(references: [id], fields: [workflowId])
 }
 
 model Action {
-  id         String           @id @default(uuid())
-  actionId   String
-  workflowId String
-  order      Int              @default(0)
-  metaData   Json             @default("{}")
-  action     AvailableActions @relation(references: [id], fields: [actionId])
-  workflow   Workflows        @relation(references: [id], fields: [workflowId])
+    id         String           @id @default(uuid())
+    actionId   String
+    workflowId String
+    order      Int              @default(0)
+    metaData   Json             @default("{}")
+    action     AvailableActions @relation(references: [id], fields: [actionId])
+    workflow   Workflows        @relation(references: [id], fields: [workflowId])
 }
 
 model AvailableTriggers {
-  id      String    @id @default(uuid())
-  name    String
-  trigger Trigger[]
+    id      String    @id @default(uuid())
+    name    String
+    trigger Trigger[]
 }
 
 model AvailableActions {
-  id     String   @id @default(uuid())
-  name   String
-  action Action[]
+    id     String   @id @default(uuid())
+    name   String
+    action Action[]
 }

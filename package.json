@@ -13,6 +13,12 @@
     "turbo": "^2.9.7",
     "typescript": "5.9.2"
   },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "sharp",
+      "unrs-resolver"
+    ]
+  },
   "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=18"

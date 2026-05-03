@@ -1,0 +1,11 @@
+{
+  "name": "@repo/shared",
+  "exports": {
+    "./types": "./src/types.ts"
+  },
+  "version": "1.0.0",
+  "private": true,
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
