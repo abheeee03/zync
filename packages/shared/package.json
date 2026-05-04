@@ -4,6 +4,7 @@
     "./types": "./src/types.ts",
     "./queue": "./src/queue/index.ts"
   },
+  "type": "module",
   "version": "1.0.0",
   "private": true,
   "keywords": [],

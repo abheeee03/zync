@@ -1,8 +1,7 @@
 import { Queue } from "bullmq"
 import { redis } from "./redis"
 
-let QUEUE_NAME = "workflow-runs"
-
+export let QUEUE_NAME = "workflow-runs"
 export const createWorkflowQueue = () => {
     return new Queue(QUEUE_NAME, {
         connection: redis,
@@ -17,3 +16,4 @@ export const createWorkflowQueue = () => {
         }
     })
 }
+export {redis};
