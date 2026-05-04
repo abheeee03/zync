@@ -1,11 +1,16 @@
 {
   "name": "@repo/shared",
   "exports": {
-    "./types": "./src/types.ts"
+    "./types": "./src/types.ts",
+    "./queue": "./src/queue/index.ts"
   },
   "version": "1.0.0",
   "private": true,
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "bullmq": "^5.76.5",
+    "ioredis": "^5.10.1"
+  }
 }

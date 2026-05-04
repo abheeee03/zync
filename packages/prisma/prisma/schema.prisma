@@ -7,6 +7,13 @@ datasource db {
     provider = "postgresql"
 }
 
+enum WORFLOWRUN_STATUS {
+    PENDING
+    FAILED
+    RUNNING
+    SUCCESS
+}
+
 model User {
     id            String      @id
     name          String
@@ -67,14 +74,24 @@ model Verification {
 }
 
 model Workflows {
-    id        String   @id @default(uuid())
-    name      String?  @default("Untitled")
-    userId    String
-    isActive  Boolean  @default(true)
-    createdAt DateTime @default(now())
-    trigger   Trigger?
-    actions   Action[]
-    user      User     @relation(references: [id], fields: [userId])
+    id           String        @id @default(uuid())
+    name         String?       @default("Untitled")
+    userId       String
+    isActive     Boolean       @default(true)
+    createdAt    DateTime      @default(now())
+    trigger      Trigger?
+    actions      Action[]
+    user         User          @relation(references: [id], fields: [userId])
+    workflowRuns WorkflowRun[]
+}
+
+model WorkflowRun {
+    id           String            @id @default(uuid())
+    workflowId   String
+    current_step Int               @default(0)
+    created_at   DateTime          @default(now())
+    status       WORFLOWRUN_STATUS @default(PENDING)
+    workflow     Workflows         @relation(fields: [workflowId], references: [id])
 }
 
 model Trigger {
