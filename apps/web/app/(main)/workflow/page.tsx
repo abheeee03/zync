@@ -1,6 +1,6 @@
 import { prisma } from "@repo/prisma/client";
 import { headers } from "next/headers";
-import { auth } from "../../lib/auth"
+import { auth } from "../../../lib/auth"
 import { redirect } from "next/navigation";
 export default async function createWorkflow(){
     const session = await auth.api.getSession({

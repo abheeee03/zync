@@ -1,9 +1,9 @@
 import { prisma } from "@repo/prisma/client"
 import { headers } from "next/headers";
-import { auth } from "../../lib/auth"
 import Link from "next/link";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { auth } from "@/lib/auth";
 
 
 export default async function Home() {
@@ -19,7 +19,7 @@ export default async function Home() {
   console.log(data);
   
   return (
-    <div className='h-screen w-full flex items-start justify-start px-10 py-20'>
+    <div className=''>
       <div className="h-full w-full">
         <div className="flex w-full items-center justify-between">
           <h1>

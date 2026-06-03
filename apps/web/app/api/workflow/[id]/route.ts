@@ -15,9 +15,13 @@ type SavePayload = {
   }[]
 }
 
+type WorkflowRouteContext = {
+  params: Promise<{ id: string }>
+}
+
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: WorkflowRouteContext
 ) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -78,7 +82,7 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: WorkflowRouteContext
 ) {
   const session = await auth.api.getSession({
     headers: await headers(),
