@@ -1,9 +1,9 @@
 import { prisma } from "@repo/prisma/client"
 import { headers } from "next/headers";
 import Link from "next/link";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
+import WorkFlowCard from "@/components/workflow-card";
 
 
 export default async function Home() {
@@ -31,18 +31,15 @@ export default async function Home() {
           </Link>
           </Button>
         </div>
-        <div className="flex flex-wrap mt-5">
+        <div className="flex flex-wrap mt-5 gap-5">
             {
               data.length != 0 ? data.map(workflow => (
-                <Card key={workflow.id}>
-                  <Link href={`/workflow/${workflow.id}`}>
-                  <CardContent>
-                    <CardTitle>
-                      {workflow.name}
-                    </CardTitle>
-                  </CardContent>
-                  </Link>
-                </Card>
+                    <WorkFlowCard
+                    key={workflow.id}
+                    id={workflow.id}
+                    name={workflow.name || "Untitled"}
+                    createdAt={workflow.createdAt}
+                    />
               )) : <p className="text-xl mt-30">No workflows found..</p>
             }
         </div>

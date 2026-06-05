@@ -174,4 +174,74 @@ export async function POST(
   })
 
   return NextResponse.json({ ok: true })
-}
+  }
+
+  export async function PATCH(
+  request: Request,
+  { params }: WorkflowRouteContext
+  ) {
+  const session = await auth.api.getSession({
+  headers: await headers(),
+  })
+
+  if (!session) {
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  const id = (await params).id
+  if (!id) {
+  return NextResponse.json({ error: "Workflow id is required" }, { status: 400 })
+  }
+
+  const { name } = await request.json()
+
+  if (!name) {
+  return NextResponse.json({ error: "Name is required" }, { status: 400 })
+  }
+
+  try {
+  const workflow = await prisma.workflows.update({
+    where: {
+      id,
+      userId: session.user.id,
+    },
+    data: {
+      name,
+    },
+  })
+  return NextResponse.json(workflow)
+  } catch (error) {
+  console.error("Failed to update workflow name:", error)
+  return NextResponse.json({ error: "Failed to update workflow" }, { status: 500 })
+  }
+  }
+
+  export async function DELETE(
+    _request: Request,
+    { params }: WorkflowRouteContext
+  ) {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const id = (await params).id
+    if (!id) {
+      return NextResponse.json({ error: "Workflow id is required" }, { status: 400 })
+    }
+
+    try {
+      await prisma.workflows.delete({
+        where: {
+          id,
+          userId: session.user.id,
+        },
+      })
+      return NextResponse.json({ ok: true })
+    } catch (error) {
+      console.error("Failed to delete workflow:", error)
+      return NextResponse.json({ error: "Failed to delete workflow" }, { status: 500 })
+    }
+  }
+
