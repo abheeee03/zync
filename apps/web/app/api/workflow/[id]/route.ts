@@ -13,6 +13,8 @@ type SavePayload = {
     metaData?: unknown
     order?: number
   }[]
+  nodes?: unknown[]
+  edges?: unknown[]
 }
 
 type WorkflowRouteContext = {
@@ -30,7 +32,7 @@ export async function GET(
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  let id = (await params).id
+  const id = (await params).id
   if (!id) {
     return NextResponse.json({ error: "Workflow id is required" }, { status: 400 })
   }
@@ -62,6 +64,8 @@ export async function GET(
   }
 
   return NextResponse.json({
+    nodes: workflow.nodes,
+    edges: workflow.edges,
     trigger: workflow.trigger
       ? {
           id: workflow.trigger.id,
@@ -91,7 +95,7 @@ export async function POST(
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  let id = (await params).id
+  const id = (await params).id
   if (!id) {
     return NextResponse.json({ error: "Workflow id is required" }, { status: 400 })
   }
@@ -122,8 +126,20 @@ export async function POST(
     : null
 
   const actions = Array.isArray(payload?.actions) ? payload.actions : []
+  const nodes = Array.isArray(payload?.nodes) ? payload.nodes : []
+  const edges = Array.isArray(payload?.edges) ? payload.edges : []
 
   await prisma.$transaction(async (tx) => {
+    await tx.workflows.update({
+      where: {
+        id,
+      },
+      data: {
+        nodes,
+        edges,
+      },
+    })
+
     await tx.action.deleteMany({
       where: {
         workflowId: id,

@@ -172,7 +172,7 @@
   }
 }
 
-.dark .react-flow__node {
+/* .dark .react-flow__node {
   background: #777;
   color: white;
 }
@@ -180,4 +180,18 @@
 .light .react-flow__node {
   background: white;
   color: #111;
+} */
+
+.workflow-flow .react-flow__node-workflow {
+  background: transparent !important;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: inherit;
+  padding: 0;
+}
+
+.workflow-flow .react-flow__node-workflow.selected .workflow-node-card {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent);
 }

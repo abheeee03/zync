@@ -78,6 +78,8 @@ model Workflows {
     name         String?       @default("Untitled")
     userId       String
     isActive     Boolean       @default(true)
+    nodes        Json          @default("[]")
+    edges        Json          @default("[]")
     createdAt    DateTime      @default(now())
     trigger      Trigger?
     actions      Action[]
