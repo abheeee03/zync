@@ -26,10 +26,12 @@ export function NavMain({
       <SidebarGroupLabel className="text-sm">Platform</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
+            <SidebarMenuItem 
+            key={item.title}>
               <SidebarMenuButton
+              isActive={item.isActive}
               className={cn(
-                item.isActive && "bg-blue-500 text-white"
+                item.isActive && "border border-accent shadow-xl "
               )}
               onClick={()=>{
                 router.push(`${item.url}`)

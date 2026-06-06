@@ -4,6 +4,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { useTheme } from "next-themes";
 import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     Background,
     Controls,
@@ -31,6 +32,13 @@ import {
     DialogHeader,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+    Drawer,
+    DrawerContent,
+    DrawerHeader,
+    DrawerTitle,
+    DrawerDescription,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { AvailableActions, AvailableTriggers } from "@repo/shared/types";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -38,7 +46,10 @@ import {
     Add01Icon,
     Calendar01Icon,
     FloppyDiskIcon,
+    Delete01Icon,
+    Settings01Icon,
 } from "@hugeicons/core-free-icons";
+import { cn } from "@/lib/utils";
 
 type WorkflowNodeKind = "trigger" | "action";
 
@@ -75,11 +86,14 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 const NODE_WIDTH = 240;
 const NODE_VERTICAL_GAP = 140;
 
-function WorkflowNodeCard({ data, isConnectable }: NodeProps<WorkflowNode>) {
+function WorkflowNodeCard({ data, isConnectable, selected }: NodeProps<WorkflowNode>) {
     const isTrigger = data.kind === "trigger";
 
     return (
-        <div className="bg-background border-accent border-2 min-w-60 rounded-xl px-4 py-3 text-sm text-card-foreground">
+        <div className={cn(
+            "bg-background border-accent border-2 min-w-60 rounded-xl px-4 py-3 text-sm text-card-foreground transition-all duration-300",
+            selected && "border-primary shadow-[0_0_25px_rgba(var(--primary),0.15)] ring-2 ring-primary/20 scale-[1.02]"
+        )}>
             {!isTrigger && (
                 <Handle
                     type="target"
@@ -254,6 +268,14 @@ function WorkflowPage() {
     const [nodes, setNodes] = useState<WorkflowNode[]>([]);
     const [edges, setEdges] = useState<WorkflowEdge[]>([]);
 
+    const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+    const selectedNode = useMemo(
+        () => nodes.find((n) => n.id === selectedNodeId),
+        [nodes, selectedNodeId],
+    );
+
     const isTriggerTab = activeTab === "triggers";
     const activeItems = isTriggerTab ? availableTriggers : availableActions;
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -415,6 +437,42 @@ function WorkflowPage() {
         [isTriggerTab, markDirty],
     );
 
+    const onNodeClick = useCallback((_: React.MouseEvent, node: WorkflowNode) => {
+        setSelectedNodeId(node.id);
+        setIsDrawerOpen(true);
+    }, []);
+
+    const handleDeleteNode = useCallback(() => {
+        if (!selectedNodeId) return;
+        setNodes((nds) => nds.filter((node) => node.id !== selectedNodeId));
+        setEdges((eds) => eds.filter((edge) => edge.source !== selectedNodeId && edge.target !== selectedNodeId));
+        setIsDrawerOpen(false);
+        setSelectedNodeId(null);
+        markDirty();
+    }, [selectedNodeId, setEdges, setNodes, markDirty]);
+
+    const handleUpdateNodeMetadata = useCallback((key: string, value: unknown) => {
+        if (!selectedNodeId) return;
+        setNodes((nds) =>
+            nds.map((node) => {
+                if (node.id === selectedNodeId) {
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            metaData: {
+                                ...(node.data.metaData as Record<string, unknown>),
+                                [key]: value,
+                            },
+                        },
+                    };
+                }
+                return node;
+            }),
+        );
+        markDirty();
+    }, [selectedNodeId, markDirty]);
+
     const handleSave = useCallback(async () => {
         if (!workflowId || saveStatus === "saving") {
             return;
@@ -476,78 +534,119 @@ function WorkflowPage() {
                             New
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="h-[80vh] w-150 max-w-none p-0 sm:max-w-none">
-                        <div className="flex h-full overflow-hidden rounded-xl">
+                    <DialogContent className="h-[80vh] w-150 max-w-none p-0 sm:max-w-none overflow-hidden bg-background/95 backdrop-blur-xl border-border/50 shadow-2xl">
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.98, y: 5 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                            className="flex h-full overflow-hidden"
+                        >
                             <div className="flex w-50 flex-col border-r border-border bg-muted/30 p-4">
-                                <p className="text-xs font-semibold uppercase text-muted-foreground">Library</p>
-                                <div className="mt-3 flex flex-col gap-1">
-                                    <Button
-                                        variant={isTriggerTab ? "secondary" : "ghost"}
-                                        className="justify-start"
-                                        onClick={() => setActiveTab("triggers")}
-                                    >
-                                        Triggers
-                                    </Button>
-                                    <Button
-                                        variant={!isTriggerTab ? "secondary" : "ghost"}
-                                        className="justify-start"
-                                        onClick={() => setActiveTab("actions")}
-                                    >
-                                        Actions
-                                    </Button>
+                                <motion.p 
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.1 }}
+                                    className="text-xs font-semibold uppercase text-muted-foreground tracking-wider mb-3 px-2"
+                                >
+                                    Library
+                                </motion.p>
+                                <div className="flex flex-col gap-1">
+                                    {[
+                                        { id: 'triggers', label: 'Triggers', active: isTriggerTab },
+                                        { id: 'actions', label: 'Actions', active: !isTriggerTab }
+                                    ].map((tab, i) => (
+                                        <motion.div
+                                            key={tab.id}
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.15 + i * 0.05 }}
+                                        >
+                                            <Button
+                                                variant={tab.active ? "secondary" : "ghost"}
+                                                className={cn(
+                                                    "w-full justify-start transition-all duration-200 rounded-lg",
+                                                    tab.active && "shadow-sm bg-background/80"
+                                                )}
+                                                onClick={() => setActiveTab(tab.id as any)}
+                                            >
+                                                {tab.label}
+                                            </Button>
+                                        </motion.div>
+                                    ))}
                                 </div>
                             </div>
 
                             <div className="flex min-w-0 flex-1 flex-col">
-                                <DialogHeader className="border-border px-2 py-5">
-                                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                                <DialogHeader className="border-border px-6 py-5">
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.2 }}
+                                        className="mt-4 flex flex-wrap items-center gap-2"
+                                    >
                                         <Input
                                             value={searchTerm}
                                             onChange={(event) => setSearchTerm(event.target.value)}
                                             placeholder={`Search ${isTriggerTab ? "triggers" : "actions"}...`}
-                                            className="h-9 max-w-md"
+                                            className="h-10 bg-muted/50 border-border/50 focus-visible:bg-background transition-all duration-300 rounded-xl"
                                         />
                                         <div className="mt-2 flex flex-wrap items-center gap-2">
-                                            <Button size="sm" variant="outline" className="rounded-full">
-                                                All
-                                            </Button>
-                                            <Button size="sm" variant="ghost" className="rounded-full">
-                                                Popular
-                                            </Button>
-                                            <Button size="sm" variant="ghost" className="rounded-full">
-                                                Recently used
-                                            </Button>
+                                            {['All', 'Popular', 'Recently used'].map((filter, i) => (
+                                                <Button key={filter} size="sm" variant={i === 0 ? "outline" : "ghost"} className="rounded-full text-xs h-7">
+                                                    {filter}
+                                                </Button>
+                                            ))}
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 </DialogHeader>
-                                <div className="flex-1 overflow-y-auto px-6 py-5">
+                                <div className="flex-1 overflow-y-auto px-6 py-2 custom-scrollbar">
                                     {loadError ? (
                                         <p className="text-sm text-destructive">{loadError}</p>
                                     ) : isLoading ? (
-                                        <p className="text-sm text-muted-foreground">Loading...</p>
-                                    ) : filteredItems.length === 0 ? (
-                                        <p className="text-sm text-muted-foreground">
-                                            {isTriggerTab ? "No triggers found." : "No actions found."}
-                                        </p>
-                                    ) : (
                                         <div className="flex flex-col gap-2">
-                                            {filteredItems.map((item) => (
-                                                <button
-                                                    onClick={() => handleAddNode(item.id, item.name)}
-                                                    className="flex cursor-pointer items-center justify-start gap-2 rounded-lg px-2 py-2 text-left text-sm hover:bg-accent"
-                                                    key={item.id}
-                                                >
-                                                    <span>
-                                                        <HugeiconsIcon icon={Calendar01Icon} />
-                                                    </span>
-                                                    {item.name}
-                                                </button>
+                                            {[1, 2, 3, 4, 5].map((i) => (
+                                                <div key={i} className="h-10 w-full animate-pulse bg-muted rounded-lg" />
                                             ))}
+                                        </div>
+                                    ) : filteredItems.length === 0 ? (
+                                        <motion.div 
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            className="flex flex-col items-center justify-center py-20 text-muted-foreground"
+                                        >
+                                            <p className="text-sm">
+                                                {isTriggerTab ? "No triggers found." : "No actions found."}
+                                            </p>
+                                        </motion.div>
+                                    ) : (
+                                        <div className="flex flex-col gap-1.5 py-3">
+                                            <AnimatePresence mode="popLayout">
+                                                {filteredItems.map((item, i) => (
+                                                    <motion.button
+                                                        layout
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        exit={{ opacity: 0, scale: 0.98 }}
+                                                        transition={{ 
+                                                            delay: Math.min(i * 0.03, 0.3),
+                                                            ease: [0.23, 1, 0.32, 1]
+                                                        }}
+                                                        onClick={() => handleAddNode(item.id, item.name)}
+                                                        className="group flex cursor-pointer items-center justify-start gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-all duration-200 hover:bg-primary/5 hover:text-primary active:scale-[0.98]"
+                                                        key={item.id}
+                                                    >
+                                                        <div className="flex size-8 items-center justify-center rounded-lg bg-muted group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                                            <HugeiconsIcon icon={Calendar01Icon} size={16} />
+                                                        </div>
+                                                        <span className="font-medium">{item.name}</span>
+                                                    </motion.button>
+                                                ))}
+                                            </AnimatePresence>
                                         </div>
                                     )}
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     </DialogContent>
                 </Dialog>
                 <Button onClick={handleSave} disabled={saveStatus === "saving" || isWorkflowLoading}>
@@ -563,6 +662,7 @@ function WorkflowPage() {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                onNodeClick={onNodeClick}
                 isValidConnection={isValidConnection}
                 colorMode={theme === "light" ? "light" : "dark"}
                 fitView
@@ -571,6 +671,130 @@ function WorkflowPage() {
                 <Background />
                 <Controls />
             </ReactFlow>
+
+            <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} direction="right">
+                <DrawerContent className="h-full border-l border-border bg-background/95 backdrop-blur-md">
+                    <DrawerHeader className="p-6 border-b border-border/50">
+                        <div className="flex items-center gap-4">
+                            <motion.div 
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className={cn(
+                                    "p-3 rounded-2xl",
+                                    selectedNode?.data.kind === "trigger" 
+                                        ? "bg-primary/10 text-primary shadow-[0_0_20px_rgba(var(--primary),0.1)]" 
+                                        : "bg-muted text-muted-foreground"
+                                )}
+                            >
+                                <HugeiconsIcon icon={selectedNode?.data.kind === "trigger" ? Calendar01Icon : FloppyDiskIcon} size={24} />
+                            </motion.div>
+                            <div>
+                                <DrawerTitle className="text-xl font-semibold tracking-tight">
+                                    {selectedNode?.data.label}
+                                </DrawerTitle>
+                                <DrawerDescription className="flex items-center gap-1.5 capitalize text-xs font-medium text-muted-foreground/80">
+                                    <span className={cn(
+                                        "size-1.5 rounded-full",
+                                        selectedNode?.data.kind === "trigger" ? "bg-primary" : "bg-muted-foreground"
+                                    )} />
+                                    {selectedNode?.data.kind} Node
+                                </DrawerDescription>
+                            </div>
+                        </div>
+                    </DrawerHeader>
+
+                    <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between px-1">
+                                <h3 className="text-sm font-semibold tracking-tight flex items-center gap-2 text-foreground/90">
+                                    <HugeiconsIcon icon={Settings01Icon} size={16} className="text-muted-foreground" />
+                                    Configuration
+                                </h3>
+                            </div>
+                            
+                            <div className="space-y-5">
+                                <AnimatePresence mode="popLayout" initial={false}>
+                                    {Object.entries((selectedNode?.data.metaData as Record<string, unknown>) ?? {}).map(([key, value], index) => (
+                                        <motion.div
+                                            key={key}
+                                            initial={{ opacity: 0, x: 20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            transition={{ 
+                                                delay: index * 0.04, 
+                                                ease: [0.23, 1, 0.32, 1],
+                                                duration: 0.4
+                                            }}
+                                            className="group space-y-2"
+                                        >
+                                            <div className="flex items-center justify-between px-1">
+                                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                                                    {key}
+                                                </label>
+                                                <button 
+                                                    onClick={() => {
+                                                        const newMetadata = { ...(selectedNode?.data.metaData as Record<string, unknown>) };
+                                                        delete newMetadata[key];
+                                                        setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, metaData: newMetadata } } : n));
+                                                        markDirty();
+                                                    }}
+                                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:text-destructive"
+                                                >
+                                                    <HugeiconsIcon icon={Delete01Icon} size={12} />
+                                                </button>
+                                            </div>
+                                            <Input
+                                                value={String(value)}
+                                                onChange={(e) => handleUpdateNodeMetadata(key, e.target.value)}
+                                                className="h-10 bg-muted/40 border-border/50 focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/10 transition-all duration-300 rounded-lg"
+                                            />
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+
+                                {Object.keys((selectedNode?.data.metaData as Record<string, unknown>) ?? {}).length === 0 && (
+                                    <motion.div 
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="py-12 flex flex-col items-center justify-center border-2 border-dashed rounded-2xl border-border/50 bg-muted/5 transition-colors hover:bg-muted/10 group"
+                                    >
+                                        <div className="p-3 rounded-full bg-muted/50 text-muted-foreground mb-3 group-hover:scale-110 transition-transform duration-300">
+                                            <HugeiconsIcon icon={Settings01Icon} size={20} />
+                                        </div>
+                                        <p className="text-xs font-medium text-muted-foreground">No options configured</p>
+                                    </motion.div>
+                                )}
+                            </div>
+
+                            <motion.div whileHover={{ y: -1 }} whileTap={{ y: 0 }}>
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="w-full h-10 border-dashed border-border/80 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all duration-300 rounded-xl"
+                                    onClick={() => {
+                                        const key = prompt("Enter option name:");
+                                        if (key) handleUpdateNodeMetadata(key, "");
+                                    }}
+                                >
+                                    <HugeiconsIcon icon={Add01Icon} size={14} className="mr-2" />
+                                    Add Custom Option
+                                </Button>
+                            </motion.div>
+                        </div>
+                    </div>
+
+                    <div className="p-6 border-t border-border/50 bg-muted/10 backdrop-blur-sm">
+                        <Button 
+                            variant="destructive" 
+                            className="w-full h-11 gap-2 shadow-sm transition-all duration-200 active:scale-[0.98] rounded-xl hover:shadow-destructive/20"
+                            onClick={handleDeleteNode}
+                        >
+                            <HugeiconsIcon icon={Delete01Icon} size={18} />
+                            <span className="font-semibold">Delete Node</span>
+                        </Button>
+                    </div>
+                </DrawerContent>
+            </Drawer>
         </div>
     );
 }

@@ -27,9 +27,7 @@ export function NavProjects({
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton
-            className={cn(
-              item.isActive && "bg-blue-500 text-white"
-            )}
+            isActive={item.isActive}
             onClick={()=>{
               router.push(item.url)
             }}

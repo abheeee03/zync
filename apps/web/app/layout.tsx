@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "sileo";
 
 const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -30,6 +31,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TooltipProvider>
+            <Toaster 
+            position="top-center"
+            />
             {children}
           </TooltipProvider>
         </ThemeProvider>

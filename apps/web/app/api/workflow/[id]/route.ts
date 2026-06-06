@@ -135,8 +135,8 @@ export async function POST(
         id,
       },
       data: {
-        nodes,
-        edges,
+        nodes: nodes as any,
+        edges: edges as any,
       },
     })
 

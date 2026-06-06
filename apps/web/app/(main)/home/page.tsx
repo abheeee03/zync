@@ -3,7 +3,9 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
-import WorkFlowCard from "@/components/workflow-card";
+import WorkflowGrid from "@/components/workflow-grid";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
 
 
 export default async function Home() {
@@ -14,9 +16,11 @@ export default async function Home() {
   const data = await prisma.workflows.findMany({
     where: {
       userId: session?.user.id
+    },
+    orderBy: {
+      createdAt: 'desc'
     }
   })
-  console.log(data);
   
   return (
     <div className=''>
@@ -25,24 +29,18 @@ export default async function Home() {
           <h1>
              Workflows
           </h1>
-          <Button>
-          <Link href={'/workflow'}>
-            New Workflow
-          </Link>
+          <Button
+          variant={"accent"}
+          asChild>
+            <Link 
+              className="flex gap-2 items-center justify-center"
+              href={'/workflow'}>
+                New Workflow 
+                <HugeiconsIcon icon={PlusSignIcon} />
+            </Link>
           </Button>
         </div>
-        <div className="flex flex-wrap mt-5 gap-5">
-            {
-              data.length != 0 ? data.map(workflow => (
-                    <WorkFlowCard
-                    key={workflow.id}
-                    id={workflow.id}
-                    name={workflow.name || "Untitled"}
-                    createdAt={workflow.createdAt}
-                    />
-              )) : <p className="text-xl mt-30">No workflows found..</p>
-            }
-        </div>
+        <WorkflowGrid workflows={data} />
       </div>
     </div>
   )
