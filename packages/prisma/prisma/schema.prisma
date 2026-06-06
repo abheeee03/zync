@@ -93,7 +93,7 @@ model WorkflowRun {
     current_step Int               @default(0)
     created_at   DateTime          @default(now())
     status       WORFLOWRUN_STATUS @default(PENDING)
-    workflow     Workflows         @relation(fields: [workflowId], references: [id])
+    workflow     Workflows         @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 }
 
 model Trigger {
@@ -103,7 +103,7 @@ model Trigger {
     workflowId       String            @unique
     metaData         Json              @default("{}")
     availbleTriggers AvailableTriggers @relation(references: [id], fields: [triggerId])
-    workflow         Workflows         @relation(references: [id], fields: [workflowId])
+    workflow         Workflows         @relation(references: [id], fields: [workflowId], onDelete: Cascade)
 }
 
 model Action {
@@ -113,7 +113,7 @@ model Action {
     order      Int              @default(0)
     metaData   Json             @default("{}")
     action     AvailableActions @relation(references: [id], fields: [actionId])
-    workflow   Workflows        @relation(references: [id], fields: [workflowId])
+    workflow   Workflows        @relation(references: [id], fields: [workflowId], onDelete: Cascade)
 }
 
 model AvailableTriggers {
