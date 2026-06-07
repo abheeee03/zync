@@ -118,12 +118,12 @@ model Action {
 
 model AvailableTriggers {
     id      String    @id @default(uuid())
-    name    String
+    name    String    @unique
     trigger Trigger[]
 }
 
 model AvailableActions {
     id     String   @id @default(uuid())
-    name   String
+    name   String   @unique
     action Action[]
 }

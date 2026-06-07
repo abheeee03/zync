@@ -8,9 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     Background,
     Controls,
-    Handle,
     MarkerType,
-    Position,
     ReactFlow,
     addEdge,
     applyEdgeChanges,
@@ -50,14 +48,15 @@ import {
     Settings01Icon,
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
+import { BaseNode, type BaseNodeData } from "@/components/workflow/base-node";
+import { HttpNode } from "@/components/nodes/http-node";
+import { ManualNode } from "@/components/nodes/manual-node";
+import { NodeSettingsForm } from "@/components/workflow/node-settings-form";
 
 type WorkflowNodeKind = "trigger" | "action";
 
-type WorkflowNodeData = {
+type WorkflowNodeData = BaseNodeData & {
     catalogId: string;
-    kind: WorkflowNodeKind;
-    label: string;
-    metaData?: Record<string, unknown>;
 };
 
 type WorkflowNode = Node<WorkflowNodeData, "workflow">;
@@ -86,47 +85,18 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 const NODE_WIDTH = 240;
 const NODE_VERTICAL_GAP = 140;
 
-function WorkflowNodeCard({ data, isConnectable, selected }: NodeProps<WorkflowNode>) {
-    const isTrigger = data.kind === "trigger";
+function WorkflowNodeCard(props: NodeProps<WorkflowNode>) {
+    const { data } = props;
+    const label = data.label.toLowerCase();
+    
+    if (label.includes("http")) {
+        return <HttpNode {...props} />;
+    }
+    if (label.includes("manual")) {
+        return <ManualNode {...props} />;
+    }
 
-    return (
-        <div className={cn(
-            "bg-background border-accent border-2 min-w-60 rounded-xl px-4 py-3 text-sm text-card-foreground transition-all duration-300",
-            selected && "border-primary shadow-[0_0_25px_rgba(var(--primary),0.15)] ring-2 ring-primary/20 scale-[1.02]"
-        )}>
-            {!isTrigger && (
-                <Handle
-                    type="target"
-                    position={Position.Left}
-                    isConnectable={isConnectable}
-                    className="!size-3 !border-2 !border-background !bg-primary"
-                />
-            )}
-            <div className="flex items-center gap-3">
-                <div
-                    className={
-                        isTrigger
-                            ? "flex size-9 items-center justify-center rounded-md text-primary"
-                            : "flex size-9 items-center justify-center rounded-md text-muted-foreground"
-                    }
-                >
-                    <HugeiconsIcon icon={isTrigger ? Calendar01Icon : FloppyDiskIcon} strokeWidth={2} />
-                </div>
-                <div className="min-w-0">
-                    <p className="text-xs font-medium uppercase text-muted-foreground">
-                        {isTrigger ? "Trigger" : "Action"}
-                    </p>
-                    <p className="truncate font-medium">{data.label}</p>
-                </div>
-            </div>
-            <Handle
-                type="source"
-                position={Position.Right}
-                isConnectable={isConnectable}
-                className="!size-3 !border-2 !border-background !bg-primary"
-            />
-        </div>
-    );
+    return <BaseNode {...props} />;
 }
 
 const nodeTypes = {
@@ -406,6 +376,14 @@ function WorkflowPage() {
             markDirty();
             setNodes((currentNodes) => {
                 const actionCount = currentNodes.filter((node) => node.data.kind === "action").length;
+                
+                const defaultMetadata: Record<string, unknown> = {};
+                if (label.toLowerCase().includes("http")) {
+                    defaultMetadata.method = "POST";
+                    defaultMetadata.url = "";
+                    defaultMetadata.body = "{}";
+                }
+
                 const nextNode: WorkflowNode = {
                     id: `${kind}-${catalogId}-${crypto.randomUUID()}`,
                     type: "workflow",
@@ -416,7 +394,7 @@ function WorkflowPage() {
                         catalogId,
                         kind,
                         label,
-                        metaData: {},
+                        metaData: defaultMetadata,
                     },
                 };
 
@@ -464,6 +442,27 @@ function WorkflowPage() {
                                 ...(node.data.metaData as Record<string, unknown>),
                                 [key]: value,
                             },
+                        },
+                    };
+                }
+                return node;
+            }),
+        );
+        markDirty();
+    }, [selectedNodeId, markDirty]);
+
+    const handleDeleteNodeMetadata = useCallback((key: string) => {
+        if (!selectedNodeId) return;
+        setNodes((nds) =>
+            nds.map((node) => {
+                if (node.id === selectedNodeId) {
+                    const newMetadata = { ...(node.data.metaData as Record<string, unknown>) };
+                    delete newMetadata[key];
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            metaData: newMetadata,
                         },
                     };
                 }
@@ -565,9 +564,9 @@ function WorkflowPage() {
                                                 variant={tab.active ? "secondary" : "ghost"}
                                                 className={cn(
                                                     "w-full justify-start transition-all duration-200 rounded-lg",
-                                                    tab.active && "shadow-sm bg-background/80"
+                                                    tab.active && "bg-secondary"
                                                 )}
-                                                onClick={() => setActiveTab(tab.id as any)}
+                                                onClick={() => setActiveTab(tab.id as "triggers" | "actions")}
                                             >
                                                 {tab.label}
                                             </Button>
@@ -712,74 +711,11 @@ function WorkflowPage() {
                                 </h3>
                             </div>
                             
-                            <div className="space-y-5">
-                                <AnimatePresence mode="popLayout" initial={false}>
-                                    {Object.entries((selectedNode?.data.metaData as Record<string, unknown>) ?? {}).map(([key, value], index) => (
-                                        <motion.div
-                                            key={key}
-                                            initial={{ opacity: 0, x: 20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, scale: 0.95 }}
-                                            transition={{ 
-                                                delay: index * 0.04, 
-                                                ease: [0.23, 1, 0.32, 1],
-                                                duration: 0.4
-                                            }}
-                                            className="group space-y-2"
-                                        >
-                                            <div className="flex items-center justify-between px-1">
-                                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                                                    {key}
-                                                </label>
-                                                <button 
-                                                    onClick={() => {
-                                                        const newMetadata = { ...(selectedNode?.data.metaData as Record<string, unknown>) };
-                                                        delete newMetadata[key];
-                                                        setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, metaData: newMetadata } } : n));
-                                                        markDirty();
-                                                    }}
-                                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:text-destructive"
-                                                >
-                                                    <HugeiconsIcon icon={Delete01Icon} size={12} />
-                                                </button>
-                                            </div>
-                                            <Input
-                                                value={String(value)}
-                                                onChange={(e) => handleUpdateNodeMetadata(key, e.target.value)}
-                                                className="h-10 bg-muted/40 border-border/50 focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/10 transition-all duration-300 rounded-lg"
-                                            />
-                                        </motion.div>
-                                    ))}
-                                </AnimatePresence>
-
-                                {Object.keys((selectedNode?.data.metaData as Record<string, unknown>) ?? {}).length === 0 && (
-                                    <motion.div 
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        className="py-12 flex flex-col items-center justify-center border-2 border-dashed rounded-2xl border-border/50 bg-muted/5 transition-colors hover:bg-muted/10 group"
-                                    >
-                                        <div className="p-3 rounded-full bg-muted/50 text-muted-foreground mb-3 group-hover:scale-110 transition-transform duration-300">
-                                            <HugeiconsIcon icon={Settings01Icon} size={20} />
-                                        </div>
-                                        <p className="text-xs font-medium text-muted-foreground">No options configured</p>
-                                    </motion.div>
-                                )}
-                            </div>
-
-                            <motion.div whileHover={{ y: -1 }} whileTap={{ y: 0 }}>
-                                <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="w-full h-10 border-dashed border-border/80 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all duration-300 rounded-xl"
-                                    onClick={() => {
-                                        const key = prompt("Enter option name:");
-                                        if (key) handleUpdateNodeMetadata(key, "");
-                                    }}
-                                >
-                                    <HugeiconsIcon icon={Add01Icon} size={14} className="mr-2" />
-                                    Add Custom Option
-                                </Button>
-                            </motion.div>
+                            <NodeSettingsForm 
+                                node={selectedNode}
+                                onUpdateMetadata={handleUpdateNodeMetadata}
+                                onDeleteMetadata={handleDeleteNodeMetadata}
+                            />
                         </div>
                     </div>
 

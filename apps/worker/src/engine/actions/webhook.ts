@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-export const executeWebhook = async (url: string) => {
+export const executeWebhook = async (url: string, method: string = 'POST', body: any = {}) => {
     if (!url) {
         throw new Error("webhook url is required");
     }
@@ -16,6 +16,10 @@ export const executeWebhook = async (url: string) => {
         throw new Error(`unsupported webhook protocol: ${parsedUrl.protocol}`);
     }
 
-    const response = await axios.post(parsedUrl.toString());
+    const response = await axios({
+        method: method,
+        url: parsedUrl.toString(),
+        data: body
+    });
     console.log(response.data);
 }

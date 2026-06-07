@@ -31,7 +31,7 @@ export function NavMain({
               <SidebarMenuButton
               isActive={item.isActive}
               className={cn(
-                item.isActive && "border border-accent shadow-xl "
+                item.isActive && "border border-accent shadow-sm"
               )}
               onClick={()=>{
                 router.push(`${item.url}`)

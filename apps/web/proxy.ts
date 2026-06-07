@@ -15,6 +15,7 @@ export async function proxy(request: NextRequest) {
     const isPublicFileRequest = /\.[^/]+$/.test(pathname);
     if (isPublicFileRequest ||
         pathname === "/" ||
+        pathname.startsWith("/health") ||
         pathname.startsWith("/signin") ||
         pathname.startsWith("/signup") ||
         pathname.startsWith("/api/auth") ||
