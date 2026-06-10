@@ -17,7 +17,8 @@ function ManualTriggerNodeView(props: NodeProps<WorkflowNode>) {
     const workflowId = params.id;
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleRun = async () => {
+    const handleRun = async (e: React.MouseEvent) => {
+        e.stopPropagation();
         if (!workflowId || isLoading) return;
         setIsLoading(true);
         try {

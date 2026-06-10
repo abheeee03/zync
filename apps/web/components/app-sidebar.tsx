@@ -17,13 +17,9 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react"
 import { CommandIcon, Home01Icon, LockPasswordIcon, Folder02Icon, HelpSquareIcon, GithubIcon, HelpCircleIcon } from "@hugeicons/core-free-icons"
 import { usePathname } from "next/navigation"
+import { authClient } from "@/lib/auth-client"
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
       title: "Home",
@@ -76,6 +72,8 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
+  const { data: session } = authClient.useSession()
+
   const navMain = data.navMain.map((item) => ({
     ...item,
     isActive: pathname === item.url,
@@ -107,7 +105,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={session?.user ?? null} />
       </SidebarFooter>
     </Sidebar>
   )
