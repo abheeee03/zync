@@ -3,6 +3,7 @@
 import { motion, Variants } from "framer-motion"
 import WorkFlowCard from "./workflow-card"
 import { sileo } from "sileo"
+import { Button } from "./ui/button"
 
 interface WorkflowGridProps {
     workflows: {
@@ -36,7 +37,15 @@ const item: Variants = {
 
 export default function WorkflowGrid({ workflows }: WorkflowGridProps) {
     if (workflows.length === 0) {
-        return <p className="text-xl mt-30">No workflows found..</p>
+        return <div 
+        className="h-96 w-full flex flex-col items-center justify-center">
+            <h1 className="text-xl mt-10">
+                  Looks like you don't have any workflows  
+            </h1>
+            <Button
+            variant={"outline"}
+            >Create New Workflow</Button>
+        </div>
     }
 
     return (

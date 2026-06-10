@@ -6,6 +6,9 @@
   "private": "true",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "seed": "tsx --env-file=.env prisma/seed.ts"
+  },
   "author": "",
   "license": "ISC",
   "devDependencies": {
