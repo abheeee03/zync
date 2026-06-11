@@ -1,27 +1,41 @@
-import { prisma } from "@repo/prisma/client"
-import { headers } from "next/headers";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { auth } from "@/lib/auth";
-import WorkflowGrid from "@/components/workflow-grid";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { PlusSignIcon } from "@hugeicons/core-free-icons";
+"use client"
 
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import WorkflowGrid from "@/components/workflow-grid"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { PlusSignIcon } from "@hugeicons/core-free-icons"
+import Loader from "@/components/loader"
+import axios from "axios"
 
-export default async function Home() {
-  
-  const session = await auth.api.getSession({
-      headers: await headers()
-  })
-  const data = await prisma.workflows.findMany({
-    where: {
-      userId: session?.user.id
-    },
-    orderBy: {
-      createdAt: 'desc'
+export default function Home() {
+  const [workflows, setWorkflows] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchWorkflows = async () => {
+      try {
+        const response = await axios.get("/api/workflows")
+        setWorkflows(response.data)
+      } catch (error) {
+        console.error("Failed to fetch workflows", error)
+      } finally {
+        setLoading(false)
+      }
     }
-  })
-  
+
+    fetchWorkflows()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex h-[70vh] w-full items-center justify-center">
+        <Loader />
+      </div>
+    )
+  }
+
   return (
     <div className=''>
       <div className="h-full w-full">
@@ -40,7 +54,7 @@ export default async function Home() {
             </Link>
           </Button>
         </div>
-        <WorkflowGrid workflows={data} />
+        <WorkflowGrid workflows={workflows} />
       </div>
     </div>
   )

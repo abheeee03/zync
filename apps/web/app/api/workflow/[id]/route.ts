@@ -64,6 +64,7 @@ export async function GET(
   }
 
   return NextResponse.json({
+    name: workflow.name,
     nodes: workflow.nodes,
     edges: workflow.edges,
     trigger: workflow.trigger

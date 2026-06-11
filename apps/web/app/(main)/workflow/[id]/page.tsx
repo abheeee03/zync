@@ -34,10 +34,13 @@ import { Input } from "@/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
     Add01Icon,
+    AlertCircleIcon,
     Calendar01Icon,
+    CloudIcon,
     Delete01Icon,
-    FloppyDiskIcon,
     Globe02Icon,
+    Loading03Icon,
+    Tick02Icon,
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import type { AvailableActions, AvailableTriggers } from "@repo/shared/types";
@@ -55,6 +58,7 @@ import type {
     WorkflowNode,
     WorkflowNodeKind,
 } from "@/components/workflow/types";
+import Loader from "@/components/loader";
  
 export type SavedWorkflowResponse = {
     trigger: {
@@ -205,7 +209,6 @@ function WorkflowPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isWorkflowLoading, setIsWorkflowLoading] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
-    const [saveError, setSaveError] = useState<string | null>(null);
     const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
     const [searchTerm, setSearchTerm] = useState("");
     const [isLibraryOpen, setIsLibraryOpen] = useState(false);
@@ -229,7 +232,6 @@ function WorkflowPage() {
         ? activeItems.filter((item) => item.name.toLowerCase().includes(normalizedSearch))
         : activeItems;
 
-    const selectedTrigger = nodes.find((n) => n.data.kind === "trigger");
     const selectedNodeCatalogName = useMemo(() => {
         if (!selectedNode) return null;
 
@@ -253,10 +255,6 @@ function WorkflowPage() {
 
         return null;
     }, [selectedNode, selectedNodeCatalogName]);
-    const connectedActionCount = useMemo(
-        () => getConnectedActionNodes(nodes, edges).length,
-        [edges, nodes],
-    );
 
     useEffect(() => {
         const load = async () => {
@@ -304,7 +302,6 @@ function WorkflowPage() {
     }, [workflowId]);
 
     const markDirty = useCallback(() => {
-        setSaveError(null);
         setSaveStatus("idle");
     }, []);
 
@@ -432,7 +429,6 @@ function WorkflowPage() {
         const connectedActions = getConnectedActionNodes(nodes, edges);
 
         setSaveStatus("saving");
-        setSaveError(null);
 
         try {
             await axios.post(`/api/workflow/${workflowId}`, {
@@ -453,41 +449,49 @@ function WorkflowPage() {
             setSaveStatus("saved");
         } catch {
             setSaveStatus("error");
-            setSaveError("Could not save workflow.");
         }
     }, [edges, nodes, saveStatus, workflowId]);
 
-    const statusLabel =
-        saveStatus === "saving"
-            ? "Saving..."
-            : saveStatus === "saved"
-                ? "Saved"
-                : saveStatus === "error"
-                    ? "Save failed"
-                    : "Unsaved";
+    useEffect(() => {
+        if (saveStatus !== "idle" || isWorkflowLoading) return;
+
+        const timer = setTimeout(() => {
+            void handleSave();
+        }, 1500);
+
+        return () => clearTimeout(timer);
+    }, [saveStatus, handleSave, isWorkflowLoading, nodes, edges]);
 
     return (
         <div className="relative h-full min-h-[calc(100vh-4rem)] w-full overflow-hidden">
-            <div className="fixed top-6 right-10 z-10 flex items-center gap-2 rounded-lg border border-border bg-background/95 p-2 shadow-sm backdrop-blur">
-                <span
-                    className={
-                        saveStatus === "error"
-                            ? "px-2 text-xs text-destructive"
-                            : "px-2 text-xs text-muted-foreground"
-                    }
-                >
-                    {saveError ??
-                        `${statusLabel} - ${selectedTrigger ? selectedTrigger.data.label : "No trigger"} / ${connectedActionCount} action${connectedActionCount !== 1 ? "s" : ""}`}
-                </span>
+            <div className="fixed top-20 right-10 z-10 flex items-center gap-2 rounded-full border border-border bg-background/95 p-1.5 shadow-lg backdrop-blur select-none transition-all duration-300">
+                <div className="flex items-center gap-2 px-3 border-r border-border mr-1">
+                    <div className="relative flex items-center justify-center">
+                        {saveStatus === "saving" && (
+                            <HugeiconsIcon icon={Loading03Icon} className="animate-spin text-muted-foreground" size={16} />
+                        )}
+                        {saveStatus === "saved" && (
+                            <HugeiconsIcon icon={Tick02Icon} className="text-primary" size={16} />
+                        )}
+                        {saveStatus === "error" && (
+                            <HugeiconsIcon icon={AlertCircleIcon} className="text-destructive" size={16} />
+                        )}
+                        {saveStatus === "idle" && (
+                            <HugeiconsIcon icon={CloudIcon} className="text-muted-foreground/50" size={16} />
+                        )}
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                        {saveStatus === "saving" ? "Saving" : saveStatus === "saved" ? "Saved" : saveStatus === "error" ? "Error" : "Changes"}
+                    </span>
+                </div>
 
                 <Dialog open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
                     <DialogTrigger asChild>
-                        <Button>
-                            <HugeiconsIcon icon={Add01Icon} strokeWidth={2} />
-                            New
+                        <Button variant="ghost" size="icon" className="size-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors">
+                            <HugeiconsIcon icon={Add01Icon} strokeWidth={2.5} size={18} />
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="h-[80vh] w-96 max-w-none overflow-hidden border-border/50 bg-background/95 p-0 shadow-2xl backdrop-blur-xl sm:max-w-none">
+                    <DialogContent className="h-[80vh] w-7xl overflow-hidden border-border/50 bg-background/95 p-0 shadow-2xl backdrop-blur-xl sm:max-w-xl">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.98, y: 5 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -515,7 +519,7 @@ function WorkflowPage() {
                                 </div>
                             </div>
 
-                            <div className="flex min-w-0 flex-1 flex-col">
+                            <div className="flex min-w-0 flex-1 flex-col py-5">
                                 <DialogHeader className="border-border px-6 pb-3 pt-6">
                                     <Input
                                         value={searchTerm}
@@ -579,11 +583,6 @@ function WorkflowPage() {
                         </motion.div>
                     </DialogContent>
                 </Dialog>
-
-                <Button onClick={handleSave} disabled={saveStatus === "saving" || isWorkflowLoading}>
-                    <HugeiconsIcon icon={FloppyDiskIcon} strokeWidth={2} />
-                    Save
-                </Button>
             </div>
 
             <ReactFlow
@@ -600,6 +599,11 @@ function WorkflowPage() {
                 fitView
                 proOptions={{ hideAttribution: true }}
             >
+                {
+                    isWorkflowLoading && <div className="h-full w-full flex items-center justify-center">
+                        <Loader/>
+                    </div>
+                }
                 <Background />
                 <Controls />
             </ReactFlow>

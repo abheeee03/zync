@@ -7,6 +7,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { ReactNode } from "react"
+import { HeaderTitle } from "@/components/header-title"
 
 export default function HomeLayout({children}: {children: ReactNode}) {
   return (
@@ -20,7 +21,7 @@ export default function HomeLayout({children}: {children: ReactNode}) {
               orientation="vertical"
               className="mr-2 data-vertical:h-4 data-vertical:self-auto"
             />
-            <span className="text-muted-foreground">Home</span>
+            <span className="text-muted-foreground"><HeaderTitle /></span>
           </div>
           <div className="px-4">
           <ThemeSwitcher/>
