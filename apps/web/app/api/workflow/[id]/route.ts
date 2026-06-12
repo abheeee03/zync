@@ -2,8 +2,10 @@ import { prisma } from "@repo/prisma/client"
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
+import { createWorkflowQueue } from "@repo/shared/queue"
 
 type SavePayload = {
+  isActive?: boolean
   trigger?: {
     triggerId: string
     metaData?: unknown
@@ -65,6 +67,7 @@ export async function GET(
 
   return NextResponse.json({
     name: workflow.name,
+    isActive: workflow.isActive,
     nodes: workflow.nodes,
     edges: workflow.edges,
     trigger: workflow.trigger
@@ -130,6 +133,8 @@ export async function POST(
   const nodes = Array.isArray(payload?.nodes) ? payload.nodes : []
   const edges = Array.isArray(payload?.edges) ? payload.edges : []
 
+  const isActive = payload.isActive;
+
   await prisma.$transaction(async (tx) => {
     await tx.workflows.update({
       where: {
@@ -138,6 +143,7 @@ export async function POST(
       data: {
         nodes: nodes as any,
         edges: edges as any,
+        ...(isActive !== undefined && { isActive }),
       },
     })
 
@@ -173,6 +179,36 @@ export async function POST(
       })
     }
   })
+
+  const updatedWorkflow = await prisma.workflows.findUnique({
+    where: { id },
+    include: {
+      trigger: {
+        include: {
+          availbleTriggers: true
+        }
+      }
+    }
+  })
+
+  const workflowQueue = createWorkflowQueue();
+  if (workflowQueue) {
+    const repeatableJobs = await workflowQueue.getRepeatableJobs();
+    for (const job of repeatableJobs) {
+      if (job.name === id) {
+        await workflowQueue.removeRepeatableByKey(job.key);
+      }
+    }
+
+    if (updatedWorkflow?.isActive && updatedWorkflow?.trigger?.availbleTriggers.name.toLowerCase().includes("schedule")) {
+      const cron = (updatedWorkflow.trigger.metaData as any)?.cron;
+      if (cron) {
+        await workflowQueue.add(id, { workflowId: id }, {
+          repeat: { pattern: cron, immediately: true }
+        });
+      }
+    }
+  }
 
   return NextResponse.json({ ok: true })
   }
@@ -239,6 +275,17 @@ export async function POST(
           userId: session.user.id,
         },
       })
+
+      const workflowQueue = createWorkflowQueue();
+      if (workflowQueue) {
+        const repeatableJobs = await workflowQueue.getRepeatableJobs();
+        for (const job of repeatableJobs) {
+          if (job.name === id) {
+            await workflowQueue.removeRepeatableByKey(job.key);
+          }
+        }
+      }
+
       return NextResponse.json({ ok: true })
     } catch (error) {
       console.error("Failed to delete workflow:", error)

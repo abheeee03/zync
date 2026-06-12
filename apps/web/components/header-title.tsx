@@ -109,7 +109,7 @@ export function HeaderTitle() {
           />
         ) : (
           <span 
-            className="cursor-pointer hover:text-foreground transition-colors"
+            className="cursor-text hover:text-foreground transition-colors"
             onClick={() => setIsEditing(true)}
           >
             {name}

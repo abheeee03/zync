@@ -18,6 +18,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { CommandIcon, Home01Icon, LockPasswordIcon, Folder02Icon, HelpSquareIcon, GithubIcon, HelpCircleIcon } from "@hugeicons/core-free-icons"
 import { usePathname } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
+import Logo from "./logo"
 
 const data = {
   navMain: [
@@ -89,11 +90,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
               <a href="#" className="flex gap-2 items-center justify-center">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <HugeiconsIcon icon={CommandIcon} strokeWidth={2} className="size-4" />
+                <div className="bg-accent px-1 py-1 rounded-xs bg-linear-to-b from-blue-500 to-blue-700">
+                  <Logo/>
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="text-lg font-medium">Zync</span>
+                  <span className="text-xl font-medium">zync</span>
                 </div>
               </a>
           </SidebarMenuItem>

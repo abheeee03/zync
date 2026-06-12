@@ -42,10 +42,10 @@ export function NavUser({
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <div className="flex items-center gap-2 px-1 py-1.5">
+        <div className="flex items-center gap-2 px-1 py-1.5 bg-background border-t shadow-xs rounded-sm">
           <SidebarMenuButton
             size="lg"
-            className="flex-1 cursor-default hover:bg-transparent active:bg-transparent"
+            className="flex-1 cursor-default"
           >
             <Avatar className="h-8 w-8 rounded-lg">
               <AvatarImage src={user.image ?? ""} alt={user.name} />
@@ -61,7 +61,7 @@ export function NavUser({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive cursor-pointer"
             onClick={handleLogout}
           >
             <HugeiconsIcon icon={Logout01Icon} size={18} strokeWidth={2} />

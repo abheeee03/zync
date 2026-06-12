@@ -50,6 +50,14 @@ import {
     ManualTriggerNode,
 } from "@/components/workflow/triggers/manual";
 import {
+    WebhookTriggerContents,
+    WebhookTriggerNode,
+} from "@/components/workflow/triggers/webhook";
+import {
+    ScheduleTriggerContents,
+    ScheduleTriggerNode,
+} from "@/components/workflow/triggers/schedule";
+import {
     WebhookActionContents,
     WebhookActionNode,
 } from "@/components/workflow/actions/webhook";
@@ -61,6 +69,7 @@ import type {
 import Loader from "@/components/loader";
  
 export type SavedWorkflowResponse = {
+    isActive: boolean;
     trigger: {
         id: string;
         triggerId: string;
@@ -86,8 +95,16 @@ const NODE_VERTICAL_GAP = 140;
 function WorkflowNodeRenderer(props: NodeProps<WorkflowNode>) {
     const nodeName = props.data.label.toLowerCase();
 
-    if (props.data.kind === "trigger" && nodeName.includes("manual")) {
-        return <ManualTriggerNode {...props} />;
+    if (props.data.kind === "trigger") {
+        if (nodeName.includes("manual")) {
+            return <ManualTriggerNode {...props} />;
+        }
+        if (nodeName.includes("webhook")) {
+            return <WebhookTriggerNode {...props} />;
+        }
+        if (nodeName.includes("schedule")) {
+            return <ScheduleTriggerNode {...props} />;
+        }
     }
 
     if (props.data.kind === "action" && nodeName.includes("webhook")) {
@@ -212,6 +229,7 @@ function WorkflowPage() {
     const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
     const [searchTerm, setSearchTerm] = useState("");
     const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+    const [isActive, setIsActive] = useState(false);
 
     const [nodes, setNodes] = useState<WorkflowNode[]>([]);
     const [edges, setEdges] = useState<WorkflowEdge[]>([]);
@@ -246,8 +264,16 @@ function WorkflowPage() {
         if (!selectedNode) return null;
 
         const normalizedName = (selectedNodeCatalogName ?? selectedNode.data.label).toLowerCase();
-        if (selectedNode.data.kind === "trigger" && normalizedName.includes("manual")) {
-            return ManualTriggerContents;
+        if (selectedNode.data.kind === "trigger") {
+            if (normalizedName.includes("manual")) {
+                return ManualTriggerContents;
+            }
+            if (normalizedName.includes("webhook")) {
+                return WebhookTriggerContents;
+            }
+            if (normalizedName.includes("schedule")) {
+                return ScheduleTriggerContents;
+            }
         }
         if (selectedNode.data.kind === "action" && normalizedName.includes("webhook")) {
             return WebhookActionContents;
@@ -282,6 +308,7 @@ function WorkflowPage() {
             setLoadError(null);
             try {
                 const res = await axios.get<SavedWorkflowResponse>(`/api/workflow/${workflowId}`);
+                setIsActive(res.data.isActive ?? false);
                 const savedNodes = normalizeSavedNodes(res.data.nodes);
                 const savedEdges = normalizeSavedEdges(res.data.edges);
                 const graph =
@@ -432,6 +459,7 @@ function WorkflowPage() {
 
         try {
             await axios.post(`/api/workflow/${workflowId}`, {
+                isActive,
                 trigger: triggerNode
                     ? {
                         triggerId: triggerNode.data.catalogId,
@@ -450,7 +478,7 @@ function WorkflowPage() {
         } catch {
             setSaveStatus("error");
         }
-    }, [edges, nodes, saveStatus, workflowId]);
+    }, [edges, nodes, saveStatus, workflowId, isActive]);
 
     useEffect(() => {
         if (saveStatus !== "idle" || isWorkflowLoading) return;
@@ -465,7 +493,19 @@ function WorkflowPage() {
     return (
         <div className="relative h-full min-h-[calc(100vh-4rem)] w-full overflow-hidden">
             <div className="fixed top-20 right-10 z-10 flex items-center gap-2 rounded-full border border-border bg-background/95 p-1.5 shadow-lg backdrop-blur select-none transition-all duration-300">
-                <div className="flex items-center gap-2 px-3 border-r border-border mr-1">
+                <Button
+                    variant={isActive ? "default" : "outline"}
+                    size="sm"
+                    className="h-8 rounded-full px-4 text-xs font-semibold"
+                    onClick={() => {
+                        setIsActive(!isActive);
+                        markDirty();
+                    }}
+                >
+                    {isActive ? "Activated Workflow" : "Activate Workflow"}
+                </Button>
+                
+                <div className="flex items-center gap-2 px-3 border-r border-l border-border mx-1">
                     <div className="relative flex items-center justify-center">
                         {saveStatus === "saving" && (
                             <HugeiconsIcon icon={Loading03Icon} className="animate-spin text-muted-foreground" size={16} />
@@ -491,7 +531,7 @@ function WorkflowPage() {
                             <HugeiconsIcon icon={Add01Icon} strokeWidth={2.5} size={18} />
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="h-[80vh] w-7xl overflow-hidden border-border/50 bg-background/95 p-0 shadow-2xl backdrop-blur-xl sm:max-w-xl">
+                    <DialogContent className="h-[80vh] w-7xl overflow-hidden bg-background/95 p-0 backdrop-blur-xl sm:max-w-xl">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.98, y: 5 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -502,19 +542,20 @@ function WorkflowPage() {
                                 <p className="mb-3 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                     Library
                                 </p>
-                                <div className="flex flex-col gap-1">
+                                <div className="flex flex-col gap-2">
                                     {(["triggers", "actions"] as const).map((tab) => (
-                                        <Button
+                                        <button
                                             key={tab}
-                                            variant={activeTab === tab ? "secondary" : "ghost"}
-                                            className={cn(
-                                                "w-full justify-start rounded-lg capitalize transition-all duration-200",
-                                                activeTab === tab && "bg-secondary",
-                                            )}
+                                            className={
+                                                cn(
+                                                    "text-md w-full text-left px-3 py-1 rounded-xl ring-secondary hover:ring-1 transition-all duration-300",
+                                                    activeTab == tab && "bg-primary text-background"
+                                                )                                                
+                                            }
                                             onClick={() => setActiveTab(tab)}
                                         >
-                                            {tab}
-                                        </Button>
+                                            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                        </button>
                                     ))}
                                 </div>
                             </div>

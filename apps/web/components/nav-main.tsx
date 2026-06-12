@@ -31,7 +31,8 @@ export function NavMain({
               <SidebarMenuButton
               isActive={item.isActive}
               className={cn(
-                item.isActive && "border border-accent shadow-sm"
+                item.isActive && "bg-secondary border-t",
+                "hover:ring-1 ring-secondary hover:shadow-sm transition-all duration-100"
               )}
               onClick={()=>{
                 router.push(`${item.url}`)

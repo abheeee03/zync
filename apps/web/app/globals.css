@@ -11,7 +11,7 @@
   --popover-foreground: oklch(0.1450 0 0);
   --primary: oklch(0.2134 0 0);
   --primary-foreground: oklch(0.9850 0 0);
-  --secondary: oklch(0.9764 0.0013 286.3755);
+  --secondary: oklch(89.143% 0.0001 271.152);
   --secondary-foreground: oklch(0.2050 0 0);
   --muted: oklch(0.9700 0 0);
   --muted-foreground: oklch(0.5560 0 0);
@@ -66,7 +66,7 @@
   --popover-foreground: oklch(0.9850 0 0);
   --primary: oklch(1.0000 0 0);
   --primary-foreground: oklch(0 0 0);
-  --secondary: oklch(1.0000 0 0);
+  --secondary: oklch(36.002% 0.00004 271.152);
   --secondary-foreground: oklch(0 0 0);
   --muted: oklch(0.2690 0 0);
   --muted-foreground: oklch(0.7080 0 0);
@@ -74,7 +74,7 @@
   --accent-foreground: oklch(0.9850 0 0);
   --destructive: oklch(0.7040 0.1910 22.2160);
   --destructive-foreground: oklch(0.9850 0 0);
-  --border: oklch(0.2134 0 0);
+  --border: oklch(36.768% 0.00004 271.152);
   --input: oklch(0.3250 0 0);
   --ring: oklch(0.5560 0 0);
   --chart-1: oklch(0.8100 0.1000 252);
@@ -99,10 +99,10 @@
   --shadow-blur: 3px;
   --shadow-spread: 0px;
   --shadow-opacity: 0.1;
-  --shadow-color: oklch(0 0 0);
+  --shadow-color: oklch(99.405% 0.00011 271.152);
   --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow-xs: 0 1px 3px 0px hsla(0, 0%, 100%, 0.05);
+  --shadow-sm: 0 1px 3px 0px hsla(0, 0%, 100%, 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
   --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
   --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
   --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
@@ -167,6 +167,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -184,4 +185,8 @@
 .workflow-flow .react-flow__node-workflow.selected .workflow-node-card {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent);
+}
+
+.cls-1 {
+  fill: #FFFF;
 }

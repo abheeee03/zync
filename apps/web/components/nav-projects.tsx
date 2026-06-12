@@ -27,15 +27,19 @@ export function NavProjects({
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton
-            isActive={item.isActive}
-            onClick={()=>{
-              router.push(item.url)
-            }}
+              isActive={item.isActive}
+              onClick={() => {
+                router.push(item.url)
+              }}
+              className={cn(
+                item.isActive && "bg-secondary border-t",
+                "hover:ring-1 ring-secondary hover:shadow-sm transition-all duration-100"
+              )}
             >
               <div
-              className={cn(
-                "flex items-center justify-start gap-2",
-              )}
+                className={cn(
+                  "flex items-center justify-start gap-2",
+                )}
               >
                 {item.icon}
                 <span className="text-md">{item.name}</span>
