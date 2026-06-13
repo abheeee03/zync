@@ -61,13 +61,17 @@ import {
     WebhookActionContents,
     WebhookActionNode,
 } from "@/components/workflow/actions/webhook";
+import {
+    NotionActionContents,
+    NotionActionNode,
+} from "@/components/workflow/actions/notion";
 import type {
     WorkflowEdge,
     WorkflowNode,
     WorkflowNodeKind,
 } from "@/components/workflow/types";
 import Loader from "@/components/loader";
- 
+
 export type SavedWorkflowResponse = {
     isActive: boolean;
     trigger: {
@@ -107,8 +111,13 @@ function WorkflowNodeRenderer(props: NodeProps<WorkflowNode>) {
         }
     }
 
-    if (props.data.kind === "action" && nodeName.includes("webhook")) {
-        return <WebhookActionNode {...props} />;
+    if (props.data.kind === "action") {
+        if (nodeName.includes("notion")) {
+            return <NotionActionNode {...props} />;
+        }
+        if (nodeName.includes("webhook")) {
+            return <WebhookActionNode {...props} />;
+        }
     }
 
     return <BaseNode {...props} />;
@@ -275,8 +284,13 @@ function WorkflowPage() {
                 return ScheduleTriggerContents;
             }
         }
-        if (selectedNode.data.kind === "action" && normalizedName.includes("webhook")) {
-            return WebhookActionContents;
+        if (selectedNode.data.kind === "action") {
+            if (normalizedName.includes("notion")) {
+                return NotionActionContents;
+            }
+            if (normalizedName.includes("webhook")) {
+                return WebhookActionContents;
+            }
         }
 
         return null;
@@ -391,7 +405,9 @@ function WorkflowPage() {
                         kind,
                         label,
                         metaData:
-                            kind === "action" && normalizedLabel.includes("webhook")
+                            kind === "action" && normalizedLabel.includes("notion")
+                                ? { actionType: "create_page", databaseId: "", databaseTitle: "", fieldValues: {}, blockContent: "", targetPageId: "", filterProperty: "", filterValue: "" }
+                                : kind === "action" && normalizedLabel.includes("webhook")
                                 ? { method: "POST", url: "", body: "" }
                                 : {},
                     },
@@ -427,12 +443,12 @@ function WorkflowPage() {
                 currentNodes.map((node) =>
                     node.id === selectedNodeId
                         ? {
-                              ...node,
-                              data: {
-                                  ...node.data,
-                                  metaData: nextMetaData,
-                              },
-                          }
+                            ...node,
+                            data: {
+                                ...node.data,
+                                metaData: nextMetaData,
+                            },
+                        }
                         : node,
                 ),
             );
@@ -504,7 +520,7 @@ function WorkflowPage() {
                 >
                     {isActive ? "Activated Workflow" : "Activate Workflow"}
                 </Button>
-                
+
                 <div className="flex items-center gap-2 px-3 border-r border-l border-border mx-1">
                     <div className="relative flex items-center justify-center">
                         {saveStatus === "saving" && (
@@ -550,7 +566,7 @@ function WorkflowPage() {
                                                 cn(
                                                     "text-md w-full text-left px-3 py-1 rounded-xl ring-secondary hover:ring-1 transition-all duration-300",
                                                     activeTab == tab && "bg-primary text-background"
-                                                )                                                
+                                                )
                                             }
                                             onClick={() => setActiveTab(tab)}
                                         >
@@ -642,7 +658,7 @@ function WorkflowPage() {
             >
                 {
                     isWorkflowLoading && <div className="h-full w-full flex items-center justify-center">
-                        <Loader/>
+                        <Loader />
                     </div>
                 }
                 <Background />
@@ -686,7 +702,7 @@ function WorkflowPage() {
                                     <span
                                         className={cn(
                                             "size-1.5 rounded-full",
-                                        selectedNode?.data.kind === "trigger"
+                                            selectedNode?.data.kind === "trigger"
                                                 ? "bg-primary"
                                                 : "bg-muted-foreground",
                                         )}

@@ -15,16 +15,17 @@ enum WORFLOWRUN_STATUS {
 }
 
 model User {
-    id            String      @id
+    id            String       @id
     name          String
-    email         String      @unique
+    email         String       @unique
     emailVerified Boolean
     image         String?
-    createdAt     DateTime    @db.Timestamptz(3)
-    updatedAt     DateTime    @db.Timestamptz(3)
+    createdAt     DateTime     @db.Timestamptz(3)
+    updatedAt     DateTime     @db.Timestamptz(3)
     workflow      Workflows[]
     session       Session[]
     account       Account[]
+    credentials   Credential[]
 
     @@map("user")
 }
@@ -71,6 +72,19 @@ model Verification {
     updatedAt  DateTime @db.Timestamptz(3)
 
     @@map("verification")
+}
+
+model Credential {
+    id           String   @id
+    userId       String
+    name         String
+    accessToken  String
+    refreshToken String
+    expiresAt    DateTime
+    scope        String
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime
+    user         User     @relation(fields: [userId], references: [id])
 }
 
 model Workflows {

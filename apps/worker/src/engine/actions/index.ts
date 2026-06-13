@@ -1,8 +1,14 @@
 import { Json } from "@repo/shared/types";
 import { executeWebhook } from "./webhook";
+import { executeNotionAction } from "./notion";
 
-export const executeAction = async (actionName: string, metaData: Json) => {
+export const executeAction = async (actionName: string, metaData: Json, userId: string) => {
     switch (actionName.toLowerCase()) {
+        case "notion":
+        case "notion action": {
+            await executeNotionAction(metaData, userId);
+            return;
+        }
         case "webhook":
         case "http request": {
             if (!metaData || typeof metaData !== "object" || Array.isArray(metaData)) {
@@ -22,7 +28,6 @@ export const executeAction = async (actionName: string, metaData: Json) => {
                 try {
                     parsedBody = JSON.parse(body);
                 } catch (e) {
-                    // if it's not valid JSON, just pass it as is or handle it
                 }
             }
 
@@ -36,4 +41,4 @@ export const executeAction = async (actionName: string, metaData: Json) => {
         default:
             throw new Error(`unsupported action: ${actionName}`);
     }
-}
+}

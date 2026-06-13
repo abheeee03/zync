@@ -25,8 +25,8 @@ const container: Variants = {
 
 const item: Variants = {
     hidden: { opacity: 0, y: 20 },
-    show: { 
-        opacity: 1, 
+    show: {
+        opacity: 1,
         y: 0,
         transition: {
             duration: 0.4,
@@ -37,19 +37,19 @@ const item: Variants = {
 
 export default function WorkflowGrid({ workflows }: WorkflowGridProps) {
     if (workflows.length === 0) {
-        return <div 
-        className="h-96 w-full flex flex-col items-center justify-center">
+        return <div
+            className="h-96 w-full flex flex-col items-center justify-center gap-6">
             <h1 className="text-xl mt-10">
-                  Looks like you don't have any workflows  
+                Looks like you don't have any workflows
             </h1>
             <Button
-            variant={"outline"}
+                variant={"outline"}
             >Create New Workflow</Button>
         </div>
     }
 
     return (
-        <motion.div 
+        <motion.div
             variants={container}
             initial="hidden"
             animate="show"

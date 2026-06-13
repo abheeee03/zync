@@ -1,23 +1,24 @@
-import { prisma } from "../prisma";
+import "dotenv/config";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../generated/prisma/client";
 
-/**
- * Seed script — run via:
- *   pnpm --filter @repo/prisma seed
- *
- * The DATABASE_URL is expected to be set in the environment or in
- * packages/prisma/.env (Prisma CLI loads .env automatically).
- */
+const connectionString = `${process.env.DATABASE_URL}`;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
 async function main() {
-  // Canonical trigger names — must match what the frontend routes against
   const triggers = [
-    { name: "Manual Trigger" },
-    { name: "Webhook" },
+    { name: "manual" },
+    { name: "webhook" },
+    { name: "schedule" },
   ];
 
   // Canonical action names — must match what the frontend routes against
   const actions = [
-    { name: "Webhook" },
-    { name: "Http Request" },
+    { name: "webhook" },
+    { name: "notion" },
   ];
 
   console.log("Seeding available triggers...");
@@ -44,10 +45,13 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
+  .then(async () => {
     await prisma.$disconnect();
+    await pool.end();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    await pool.end();
+    process.exit(1);
   });

@@ -16,7 +16,8 @@
     "@repo/prisma": "workspace:*",
     "@repo/shared": "workspace:*",
     "axios": "^1.16.0",
-    "bullmq": "^5.76.5"
+    "bullmq": "^5.76.5",
+    "googleapis": "^173.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.19.0",

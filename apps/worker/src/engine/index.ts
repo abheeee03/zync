@@ -58,7 +58,7 @@ export const ExecuteJob = async (runId: string) => {
     try {
         for (let i = currentStep; i < actions.length; i++) {
             const step = actions[i];
-            await executeAction(step.action.name, step.metaData);
+            await executeAction(step.action.name, step.metaData, data.workflow.userId);
             await prisma.workflowRun.update({
                 where: { id: runId },
                 data: { current_step: i + 1 },
