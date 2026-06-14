@@ -424,10 +424,10 @@ function WorkflowPage() {
                             kind === "action" && normalizedLabel.includes("notion")
                                 ? { actionType: "create_page", databaseId: "", databaseTitle: "", fieldValues: {}, blockContent: "", targetPageId: "", filterProperty: "", filterValue: "" }
                                 : kind === "action" && normalizedLabel.includes("webhook")
-                                ? { method: "POST", url: "", body: "" }
-                                : kind === "action" && normalizedLabel.includes("ai")
-                                ? { provider: "gemini", model: "gemini-1.5-flash", prompt: "" }
-                                : {},
+                                    ? { method: "POST", url: "", body: "" }
+                                    : kind === "action" && normalizedLabel.includes("ai")
+                                        ? { provider: "gemini", model: "gemini-1.5-flash", prompt: "" }
+                                        : {},
                     },
                 };
 
@@ -525,8 +525,8 @@ function WorkflowPage() {
     }, [saveStatus, handleSave, isWorkflowLoading, nodes, edges]);
 
     return (
-        <div className="relative h-full min-h-[calc(100vh-4rem)] w-full overflow-hidden">
-            <div className="fixed top-20 right-10 z-10 flex items-center gap-2 rounded-full border border-border bg-background/95 p-1.5 shadow-lg backdrop-blur select-none transition-all duration-300">
+        <div className="relative h-full w-full overflow-hidden">
+            <div className="fixed top-20 right-10 z-10 flex items-center gap-2 rounded-full  border border-border bg-background/95 p-1.5 shadow-lg backdrop-blur select-none transition-all duration-300">
                 <Button
                     variant={isActive ? "default" : "outline"}
                     size="sm"
@@ -615,7 +615,7 @@ function WorkflowPage() {
                                         className="h-10 rounded-xl border-border/50 bg-muted/50 transition-all duration-300 focus-visible:bg-background"
                                     />
                                 </DialogHeader>
-                                <div className="flex-1 overflow-y-auto px-6 py-2">
+                                <div className="flex-1 overflow-y-auto px-6 py-2 no-scrollbar">
                                     {loadError ? (
                                         <p className="py-4 text-sm text-destructive">{loadError}</p>
                                     ) : isLoading ? (
@@ -687,7 +687,7 @@ function WorkflowPage() {
                 proOptions={{ hideAttribution: true }}
             >
                 {
-                    isWorkflowLoading && <div className="h-full w-full flex items-center justify-center">
+                    isWorkflowLoading && <div className="h-full  w-full flex items-center justify-center">
                         <Loader />
                     </div>
                 }
@@ -743,7 +743,7 @@ function WorkflowPage() {
                         </div>
                     </DrawerHeader>
 
-                    <div className="flex-1 space-y-6 overflow-y-auto p-6">
+                    <div className="flex-1 space-y-6 overflow-y-auto p-6 no-scrollbar">
                         {SelectedNodeContents ? (
                             <SelectedNodeContents
                                 value={selectedNodeMetaData}
