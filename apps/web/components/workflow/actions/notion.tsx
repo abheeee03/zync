@@ -13,10 +13,12 @@ import {
     Tick02Icon,
     AlertCircleIcon,
 } from "@hugeicons/core-free-icons";
+import { VariableSuggestions, type VariableInfo } from "../variable-suggestions";
 
 type NodeEditorProps = {
     value: Record<string, unknown>;
     onChange: (nextValue: Record<string, unknown>) => void;
+    variables?: VariableInfo[];
 };
 
 type NotionProperty = {
@@ -76,7 +78,7 @@ function NotionActionNodeView(props: NodeProps<WorkflowNode>) {
     );
 }
 
-function NotionActionContents({ value, onChange }: NodeEditorProps) {
+function NotionActionContents({ value, onChange, variables }: NodeEditorProps) {
     const actionType = typeof value.actionType === "string" ? value.actionType : "create_page";
     const databaseId = typeof value.databaseId === "string" ? value.databaseId : "";
     const targetPageId = typeof value.targetPageId === "string" ? value.targetPageId : "";
@@ -253,6 +255,7 @@ function NotionActionContents({ value, onChange }: NodeEditorProps) {
 
     return (
         <div className="space-y-6">
+            <VariableSuggestions variables={variables ?? []} />
             <div className="flex items-center justify-between rounded-xl border border-border bg-muted/10 px-4 py-3">
                 <div className="flex items-center gap-2">
                     <div className="flex size-5 items-center justify-center rounded bg-primary text-primary-foreground font-bold text-[10px]">

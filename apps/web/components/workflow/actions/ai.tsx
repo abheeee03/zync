@@ -13,10 +13,12 @@ import {
     Tick02Icon,
     AiBrain01Icon,
 } from "@hugeicons/core-free-icons";
+import { VariableSuggestions, type VariableInfo } from "../variable-suggestions";
 
 type NodeEditorProps = {
     value: Record<string, unknown>;
     onChange: (nextValue: Record<string, unknown>) => void;
+    variables?: VariableInfo[];
 };
 
 function AiActionNodeView(props: NodeProps<WorkflowNode>) {
@@ -45,36 +47,38 @@ function AiActionNodeView(props: NodeProps<WorkflowNode>) {
     );
 }
 
-function AiActionContents({ value, onChange }: NodeEditorProps) {
+function AiActionContents({ value, onChange, variables }: NodeEditorProps) {
     const provider = typeof value.provider === "string" ? value.provider : "gemini";
     const model = typeof value.model === "string" ? value.model : "gemini-1.5-flash";
     const prompt = typeof value.prompt === "string" ? value.prompt : "";
 
-    const [status, setStatus] = useState<{ connected: boolean } | null>(null);
+    const [status, setStatus] = useState<{ connected: boolean; workspaceName?: string | null } | null>(null);
     const [loadingStatus, setLoadingStatus] = useState(true);
     const [apiKey, setApiKey] = useState("");
     const [isConnecting, setIsConnecting] = useState(false);
 
     useEffect(() => {
         const fetchStatus = async () => {
+            setLoadingStatus(true);
             try {
-                const res = await axios.get("/api/gemini/status");
+                const res = await axios.get(`/api/llm/${provider}`);
                 setStatus(res.data);
             } catch (err) {
                 console.error(err);
+                setStatus({ connected: false });
             } finally {
                 setLoadingStatus(false);
             }
         };
         void fetchStatus();
-    }, []);
+    }, [provider]);
 
     const handleConnect = async () => {
         if (!apiKey.trim()) return;
         setIsConnecting(true);
         try {
-            await axios.post("/api/gemini/connect", { apiKey });
-            setStatus({ connected: true });
+            await axios.post(`/api/llm/${provider}`, { apiKey });
+            setStatus({ connected: true, workspaceName: provider === "gemini" ? "Gemini API" : provider === "chatgpt" ? "OpenAI API" : "Anthropic API" });
             setApiKey("");
         } catch (err) {
             console.error(err);
@@ -85,33 +89,81 @@ function AiActionContents({ value, onChange }: NodeEditorProps) {
 
     const handleDisconnect = async () => {
         try {
-            await axios.delete("/api/gemini/status");
+            await axios.delete(`/api/llm/${provider}`);
             setStatus({ connected: false });
         } catch (err) {
             console.error(err);
         }
     };
 
-    if (loadingStatus) {
+    const handleProviderChange = (newProvider: string) => {
+        let defaultModel = "gemini-1.5-flash";
+        if (newProvider === "chatgpt") {
+            defaultModel = "gpt-4o";
+        } else if (newProvider === "claude") {
+            defaultModel = "claude-3-5-sonnet";
+        }
+        onChange({
+            ...value,
+            provider: newProvider,
+            model: defaultModel,
+        });
+    };
+
+    const renderModelOptions = () => {
+        if (provider === "chatgpt") {
+            return (
+                <>
+                    <option value="gpt-4o">GPT-4o (Recommended)</option>
+                    <option value="gpt-4o-mini">GPT-4o mini</option>
+                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                </>
+            );
+        }
+        if (provider === "claude") {
+            return (
+                <>
+                    <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (Recommended)</option>
+                    <option value="claude-3-opus">Claude 3 Opus</option>
+                    <option value="claude-3-haiku">Claude 3 Haiku</option>
+                </>
+            );
+        }
         return (
-            <div className="flex justify-center py-6">
-                <HugeiconsIcon icon={Loading03Icon} className="animate-spin text-muted-foreground" size={24} />
-            </div>
+            <>
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommended)</option>
+                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+            </>
         );
-    }
+    };
+
+    const getProviderLabel = () => {
+        if (provider === "chatgpt") return "ChatGPT (OpenAI)";
+        if (provider === "claude") return "Claude (Anthropic)";
+        return "Gemini";
+    };
+
+    const getApiKeyPlaceholder = () => {
+        if (provider === "chatgpt") return "sk-...";
+        if (provider === "claude") return "sk-ant-...";
+        return "AIzaSy...";
+    };
 
     return (
         <div className="space-y-6">
+            <VariableSuggestions variables={variables ?? []} />
+
             <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">AI Provider</label>
                 <select
                     value={provider}
-                    onChange={(e) => onChange({ ...value, provider: e.target.value })}
+                    onChange={(e) => handleProviderChange(e.target.value)}
                     className="h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background focus:ring-2 focus:ring-ring"
                 >
                     <option value="gemini">Gemini</option>
-                    <option value="chatgpt" disabled>ChatGPT (Coming soon)</option>
-                    <option value="claude" disabled>Claude (Coming soon)</option>
+                    <option value="chatgpt">ChatGPT (OpenAI)</option>
+                    <option value="claude">Claude (Anthropic)</option>
                 </select>
             </div>
 
@@ -122,25 +174,28 @@ function AiActionContents({ value, onChange }: NodeEditorProps) {
                     onChange={(e) => onChange({ ...value, model: e.target.value })}
                     className="h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background focus:ring-2 focus:ring-ring"
                 >
-                    <option value="gemini-3.5-flash">gemini-3.5-flash</option>
-                    <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite</option>
+                    {renderModelOptions()}
                 </select>
             </div>
 
-            {!status?.connected ? (
+            {loadingStatus ? (
+                <div className="flex justify-center py-6">
+                    <HugeiconsIcon icon={Loading03Icon} className="animate-spin text-muted-foreground" size={24} />
+                </div>
+            ) : !status?.connected ? (
                 <div className="space-y-4 rounded-xl border border-dashed border-border/70 p-4">
                     <p className="text-xs text-muted-foreground">
-                        Your Gemini API key is not connected. Connect it below to execute this action:
+                        Your {getProviderLabel()} API key is not connected. Connect it below to execute this action:
                     </p>
                     <div className="space-y-2">
                         <Input
                             type="password"
-                            placeholder="Enter API Key"
+                            placeholder={getApiKeyPlaceholder()}
                             value={apiKey}
                             onChange={(e) => setApiKey(e.target.value)}
                         />
                         <Button onClick={handleConnect} disabled={isConnecting} className="w-full h-9 text-xs">
-                            {isConnecting ? "Connecting..." : "Connect API Key"}
+                            {isConnecting ? "Connecting..." : `Connect ${getProviderLabel()} Key`}
                         </Button>
                     </div>
                 </div>
@@ -152,7 +207,7 @@ function AiActionContents({ value, onChange }: NodeEditorProps) {
                                 <HugeiconsIcon icon={Tick02Icon} size={10} />
                             </div>
                             <span className="text-xs font-semibold text-foreground">
-                                Gemini Connected
+                                {getProviderLabel()} Connected
                             </span>
                         </div>
                         <Button variant="ghost" size="sm" onClick={handleDisconnect} className="h-7 text-xs text-destructive hover:bg-destructive/10">
@@ -166,7 +221,7 @@ function AiActionContents({ value, onChange }: NodeEditorProps) {
                             value={prompt}
                             onChange={(e) => onChange({ ...value, prompt: e.target.value })}
                             className="min-h-32 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring"
-                            placeholder="Describe what Gemini should do. You can use dynamic fields inside here..."
+                            placeholder={`Describe what ${getProviderLabel()} should do. You can use dynamic variables...`}
                         />
                         <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 text-xs text-muted-foreground space-y-1.5">
                             <p className="font-semibold text-foreground">💡 Variable Output</p>

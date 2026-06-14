@@ -4,9 +4,12 @@ import BaseNode from "../base-node";
 import type { WorkflowNode } from "../types";
 import type { NodeProps } from "@xyflow/react";
 
+import { VariableSuggestions, type VariableInfo } from "../variable-suggestions";
+
 type NodeEditorProps = {
     value: Record<string, unknown>;
     onChange: (nextValue: Record<string, unknown>) => void;
+    variables?: VariableInfo[];
 };
 
 function WebhookActionNodeView(props: NodeProps<WorkflowNode>) {
@@ -31,7 +34,7 @@ function WebhookActionNodeView(props: NodeProps<WorkflowNode>) {
     );
 }
 
-function WebhookActionContents({ value, onChange }: NodeEditorProps) {
+function WebhookActionContents({ value, onChange, variables }: NodeEditorProps) {
     const metaData = value;
     const url = typeof metaData.url === "string" ? metaData.url : "";
     const method = typeof metaData.method === "string" ? metaData.method : "POST";
@@ -39,6 +42,7 @@ function WebhookActionContents({ value, onChange }: NodeEditorProps) {
 
     return (
         <div className="space-y-4">
+            <VariableSuggestions variables={variables ?? []} />
             <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Webhook URL</label>
                 <Input

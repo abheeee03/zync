@@ -76,6 +76,7 @@ import type {
 } from "@/components/workflow/types";
 import Loader from "@/components/loader";
 import { sileo } from "sileo";
+import { getAvailableVariables } from "@/components/workflow/variable-suggestions";
 
 export type SavedWorkflowResponse = {
     isActive: boolean;
@@ -257,6 +258,10 @@ function WorkflowPage() {
     const selectedNode = useMemo(
         () => nodes.find((n) => n.id === selectedNodeId),
         [nodes, selectedNodeId],
+    );
+    const availableVariables = useMemo(
+        () => getAvailableVariables(selectedNodeId, nodes, edges),
+        [selectedNodeId, nodes, edges],
     );
     const selectedNodeMetaData = selectedNode?.data.metaData ?? {};
 
@@ -743,6 +748,7 @@ function WorkflowPage() {
                             <SelectedNodeContents
                                 value={selectedNodeMetaData}
                                 onChange={handleSelectedNodeMetaDataChange}
+                                variables={availableVariables}
                             />
                         ) : (
                             <div className="rounded-2xl border border-dashed border-border/70 bg-muted/20 p-4">

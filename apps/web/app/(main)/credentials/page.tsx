@@ -28,10 +28,28 @@ export default function CredentialsPage() {
         workspaceName: null,
         loading: true,
     });
+    const [chatgptStatus, setChatgptStatus] = useState<IntegrationStatus>({
+        connected: false,
+        workspaceName: null,
+        loading: true,
+    });
+    const [claudeStatus, setClaudeStatus] = useState<IntegrationStatus>({
+        connected: false,
+        workspaceName: null,
+        loading: true,
+    });
 
-    const [apiKey, setApiKey] = useState("");
+    const [geminiApiKey, setGeminiApiKey] = useState("");
     const [isConnectingGemini, setIsConnectingGemini] = useState(false);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isGeminiDialogOpen, setIsGeminiDialogOpen] = useState(false);
+
+    const [chatgptApiKey, setChatgptApiKey] = useState("");
+    const [isConnectingChatgpt, setIsConnectingChatgpt] = useState(false);
+    const [isChatgptDialogOpen, setIsChatgptDialogOpen] = useState(false);
+
+    const [claudeApiKey, setClaudeApiKey] = useState("");
+    const [isConnectingClaude, setIsConnectingClaude] = useState(false);
+    const [isClaudeDialogOpen, setIsClaudeDialogOpen] = useState(false);
 
     const fetchStatuses = async () => {
         try {
@@ -46,7 +64,7 @@ export default function CredentialsPage() {
         }
 
         try {
-            const geminiRes = await axios.get("/api/gemini/status");
+            const geminiRes = await axios.get("/api/llm/gemini");
             setGeminiStatus({
                 connected: geminiRes.data.connected,
                 workspaceName: geminiRes.data.workspaceName,
@@ -54,6 +72,28 @@ export default function CredentialsPage() {
             });
         } catch {
             setGeminiStatus((prev) => ({ ...prev, loading: false }));
+        }
+
+        try {
+            const chatgptRes = await axios.get("/api/llm/chatgpt");
+            setChatgptStatus({
+                connected: chatgptRes.data.connected,
+                workspaceName: chatgptRes.data.workspaceName,
+                loading: false,
+            });
+        } catch {
+            setChatgptStatus((prev) => ({ ...prev, loading: false }));
+        }
+
+        try {
+            const claudeRes = await axios.get("/api/llm/claude");
+            setClaudeStatus({
+                connected: claudeRes.data.connected,
+                workspaceName: claudeRes.data.workspaceName,
+                loading: false,
+            });
+        } catch {
+            setClaudeStatus((prev) => ({ ...prev, loading: false }));
         }
     };
 
@@ -76,16 +116,16 @@ export default function CredentialsPage() {
     };
 
     const handleConnectGemini = async () => {
-        if (!apiKey.trim()) {
+        if (!geminiApiKey.trim()) {
             sileo.error({ title: "Please enter a valid API key" });
             return;
         }
         setIsConnectingGemini(true);
         try {
-            await axios.post("/api/gemini/connect", { apiKey });
+            await axios.post("/api/llm/gemini", { apiKey: geminiApiKey });
             setGeminiStatus({ connected: true, workspaceName: "Gemini API", loading: false });
-            setApiKey("");
-            setIsDialogOpen(false);
+            setGeminiApiKey("");
+            setIsGeminiDialogOpen(false);
             sileo.success({ title: "Connected Gemini successfully!" });
         } catch {
             sileo.error({ title: "Failed to connect Gemini" });
@@ -96,7 +136,7 @@ export default function CredentialsPage() {
 
     const handleDisconnectGemini = async () => {
         try {
-            await axios.delete("/api/gemini/status");
+            await axios.delete("/api/llm/gemini");
             setGeminiStatus({ connected: false, workspaceName: null, loading: false });
             sileo.success({ title: "Disconnected Gemini successfully" });
         } catch {
@@ -104,7 +144,65 @@ export default function CredentialsPage() {
         }
     };
 
-    const isLoading = notionStatus.loading || geminiStatus.loading;
+    const handleConnectChatgpt = async () => {
+        if (!chatgptApiKey.trim()) {
+            sileo.error({ title: "Please enter a valid API key" });
+            return;
+        }
+        setIsConnectingChatgpt(true);
+        try {
+            await axios.post("/api/llm/chatgpt", { apiKey: chatgptApiKey });
+            setChatgptStatus({ connected: true, workspaceName: "OpenAI API", loading: false });
+            setChatgptApiKey("");
+            setIsChatgptDialogOpen(false);
+            sileo.success({ title: "Connected ChatGPT successfully!" });
+        } catch {
+            sileo.error({ title: "Failed to connect ChatGPT" });
+        } finally {
+            setIsConnectingChatgpt(false);
+        }
+    };
+
+    const handleDisconnectChatgpt = async () => {
+        try {
+            await axios.delete("/api/llm/chatgpt");
+            setChatgptStatus({ connected: false, workspaceName: null, loading: false });
+            sileo.success({ title: "Disconnected ChatGPT successfully" });
+        } catch {
+            sileo.error({ title: "Failed to disconnect ChatGPT" });
+        }
+    };
+
+    const handleConnectClaude = async () => {
+        if (!claudeApiKey.trim()) {
+            sileo.error({ title: "Please enter a valid API key" });
+            return;
+        }
+        setIsConnectingClaude(true);
+        try {
+            await axios.post("/api/llm/claude", { apiKey: claudeApiKey });
+            setClaudeStatus({ connected: true, workspaceName: "Anthropic API", loading: false });
+            setClaudeApiKey("");
+            setIsClaudeDialogOpen(false);
+            sileo.success({ title: "Connected Claude successfully!" });
+        } catch {
+            sileo.error({ title: "Failed to connect Claude" });
+        } finally {
+            setIsConnectingClaude(false);
+        }
+    };
+
+    const handleDisconnectClaude = async () => {
+        try {
+            await axios.delete("/api/llm/claude");
+            setClaudeStatus({ connected: false, workspaceName: null, loading: false });
+            sileo.success({ title: "Disconnected Claude successfully" });
+        } catch {
+            sileo.error({ title: "Failed to disconnect Claude" });
+        }
+    };
+
+    const isLoading = notionStatus.loading || geminiStatus.loading || chatgptStatus.loading || claudeStatus.loading;
 
     if (isLoading) {
         return (
@@ -199,7 +297,7 @@ export default function CredentialsPage() {
                                 Disconnect
                             </Button>
                         ) : (
-                            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                            <Dialog open={isGeminiDialogOpen} onOpenChange={setIsGeminiDialogOpen}>
                                 <DialogTrigger asChild>
                                     <Button size="sm">Connect Gemini</Button>
                                 </DialogTrigger>
@@ -216,8 +314,8 @@ export default function CredentialsPage() {
                                                 id="gemini-key"
                                                 type="password"
                                                 placeholder="Enter API Key"
-                                                value={apiKey}
-                                                onChange={(e) => setApiKey(e.target.value)}
+                                                value={geminiApiKey}
+                                                onChange={(e) => setGeminiApiKey(e.target.value)}
                                             />
                                         </div>
                                     </div>
@@ -243,8 +341,8 @@ export default function CredentialsPage() {
                     </CardContent>
                 </Card>
 
-                {/* ChatGPT Card - Scalability */}
-                <Card className="flex flex-col justify-between border-border/40 bg-muted/5 opacity-60">
+                {/* ChatGPT Card */}
+                <Card className="flex flex-col justify-between border-border/60 bg-muted/10">
                     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                         <div className="space-y-1">
                             <CardTitle className="text-xl font-bold flex items-center gap-2">
@@ -257,20 +355,72 @@ export default function CredentialsPage() {
                                 Integrate OpenAI models dynamically in your workflow logic.
                             </CardDescription>
                         </div>
-                        <div className="rounded-full bg-muted border border-border/40 px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-                            Coming Soon
-                        </div>
+                        {chatgptStatus.connected && (
+                            <div className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-500">
+                                <HugeiconsIcon icon={Tick02Icon} size={12} />
+                                Connected
+                            </div>
+                        )}
                     </CardHeader>
                     <CardContent className="pt-4 flex items-end justify-between">
-                        <div className="text-xs text-muted-foreground">Future integration support</div>
-                        <Button disabled size="sm" variant="outline">
-                            Connect
-                        </Button>
+                        <div className="text-xs text-muted-foreground">
+                            {chatgptStatus.connected ? (
+                                <span>Status: <strong className="text-foreground">Active Key</strong></span>
+                            ) : (
+                                <span>Not connected</span>
+                            )}
+                        </div>
+                        {chatgptStatus.connected ? (
+                            <Button variant="outline" size="sm" onClick={handleDisconnectChatgpt} className="text-destructive hover:bg-destructive/10">
+                                Disconnect
+                            </Button>
+                        ) : (
+                            <Dialog open={isChatgptDialogOpen} onOpenChange={setIsChatgptDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button size="sm">Connect ChatGPT</Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle>Connect OpenAI API</DialogTitle>
+                                        <DialogDescription>
+                                            Paste your OpenAI API key below to enable ChatGPT content generation in workflow nodes.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="flex flex-col gap-3 py-2">
+                                        <div className="space-y-1">
+                                            <Input
+                                                id="chatgpt-key"
+                                                type="password"
+                                                placeholder="Enter OpenAI API Key"
+                                                value={chatgptApiKey}
+                                                onChange={(e) => setChatgptApiKey(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button
+                                            onClick={handleConnectChatgpt}
+                                            disabled={isConnectingChatgpt}
+                                            className="w-full sm:w-auto"
+                                        >
+                                            {isConnectingChatgpt ? (
+                                                <>
+                                                    <HugeiconsIcon icon={Loading03Icon} className="mr-2 h-4 w-4 animate-spin" />
+                                                    Connecting
+                                                </>
+                                            ) : (
+                                                "Save API Key"
+                                            )}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        )}
                     </CardContent>
                 </Card>
 
-                {/* Claude Card - Scalability */}
-                <Card className="flex flex-col justify-between border-border/40 bg-muted/5 opacity-60">
+                {/* Claude Card */}
+                <Card className="flex flex-col justify-between border-border/60 bg-muted/10">
                     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                         <div className="space-y-1">
                             <CardTitle className="text-xl font-bold flex items-center gap-2">
@@ -283,15 +433,67 @@ export default function CredentialsPage() {
                                 Integrate Anthropic models dynamically in your workflow logic.
                             </CardDescription>
                         </div>
-                        <div className="rounded-full bg-muted border border-border/40 px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-                            Coming Soon
-                        </div>
+                        {claudeStatus.connected && (
+                            <div className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-500">
+                                <HugeiconsIcon icon={Tick02Icon} size={12} />
+                                Connected
+                            </div>
+                        )}
                     </CardHeader>
                     <CardContent className="pt-4 flex items-end justify-between">
-                        <div className="text-xs text-muted-foreground">Future integration support</div>
-                        <Button disabled size="sm" variant="outline">
-                            Connect
-                        </Button>
+                        <div className="text-xs text-muted-foreground">
+                            {claudeStatus.connected ? (
+                                <span>Status: <strong className="text-foreground">Active Key</strong></span>
+                            ) : (
+                                <span>Not connected</span>
+                            )}
+                        </div>
+                        {claudeStatus.connected ? (
+                            <Button variant="outline" size="sm" onClick={handleDisconnectClaude} className="text-destructive hover:bg-destructive/10">
+                                Disconnect
+                            </Button>
+                        ) : (
+                            <Dialog open={isClaudeDialogOpen} onOpenChange={setIsClaudeDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button size="sm">Connect Claude</Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle>Connect Anthropic API</DialogTitle>
+                                        <DialogDescription>
+                                            Paste your Anthropic API key below to enable Claude content generation in workflow nodes.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="flex flex-col gap-3 py-2">
+                                        <div className="space-y-1">
+                                            <Input
+                                                id="claude-key"
+                                                type="password"
+                                                placeholder="Enter Anthropic API Key"
+                                                value={claudeApiKey}
+                                                onChange={(e) => setClaudeApiKey(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button
+                                            onClick={handleConnectClaude}
+                                            disabled={isConnectingClaude}
+                                            className="w-full sm:w-auto"
+                                        >
+                                            {isConnectingClaude ? (
+                                                <>
+                                                    <HugeiconsIcon icon={Loading03Icon} className="mr-2 h-4 w-4 animate-spin" />
+                                                    Connecting
+                                                </>
+                                            ) : (
+                                                "Save API Key"
+                                            )}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        )}
                     </CardContent>
                 </Card>
             </div>
