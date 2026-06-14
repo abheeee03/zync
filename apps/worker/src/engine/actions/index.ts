@@ -2,9 +2,19 @@ import { Json } from "@repo/shared/types";
 import { executeWebhook } from "./webhook";
 import { executeNotionAction } from "./notion";
 import { executeAiAction } from "./ai";
+import { executeDelayAction } from "./delay";
+import { executeTransformAction } from "./transform";
 
 export const executeAction = async (actionName: string, metaData: Json, userId: string) => {
     switch (actionName.toLowerCase()) {
+        case "delay":
+        case "delay action": {
+            return await executeDelayAction(metaData);
+        }
+        case "transform":
+        case "transform action": {
+            return await executeTransformAction(metaData);
+        }
         case "ai":
         case "ai action": {
             return await executeAiAction(metaData, userId);

@@ -92,6 +92,7 @@ export const executeNotionAction = async (metaData: any, userId: string) => {
                 { headers }
             );
             console.log("Notion page created:", response.data.id);
+            return { pageId: response.data.id, url: response.data.url };
         } else {
             if (!targetPageId) {
                 throw new Error("targetPageId is required for update_page Notion action");
@@ -104,6 +105,7 @@ export const executeNotionAction = async (metaData: any, userId: string) => {
                 { headers }
             );
             console.log("Notion page updated:", response.data.id);
+            return { pageId: response.data.id, url: response.data.url };
         }
     } else if (actionType === "append_block") {
         if (!targetPageId) {

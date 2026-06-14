@@ -95,6 +95,12 @@ export function getAvailableVariables(currentNodeId: string | null, nodes: any[]
                 variable: "{notion.url}",
                 nodeLabel: node.data?.label ?? "Notion Action",
             });
+        } else if (nodeName.includes("transform")) {
+            variables.push({
+                label: "Transform Result",
+                variable: "{transform.result}",
+                nodeLabel: node.data?.label ?? "Transform Action",
+            });
         }
     }
 

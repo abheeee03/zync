@@ -20,6 +20,8 @@ async function main() {
     { name: "webhook" },
     { name: "notion" },
     { name: "ai" },
+    { name: "delay" },
+    { name: "transform" },
   ];
 
   console.log("Seeding available triggers...");

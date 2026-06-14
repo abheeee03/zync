@@ -69,6 +69,14 @@ import {
     AiActionContents,
     AiActionNode,
 } from "@/components/workflow/actions/ai";
+import {
+    DelayActionContents,
+    DelayActionNode,
+} from "@/components/workflow/actions/delay";
+import {
+    TransformActionContents,
+    TransformActionNode,
+} from "@/components/workflow/actions/transform";
 import type {
     WorkflowEdge,
     WorkflowNode,
@@ -126,6 +134,12 @@ function WorkflowNodeRenderer(props: NodeProps<WorkflowNode>) {
         }
         if (nodeName.includes("ai")) {
             return <AiActionNode {...props} />;
+        }
+        if (nodeName.includes("delay")) {
+            return <DelayActionNode {...props} />;
+        }
+        if (nodeName.includes("transform")) {
+            return <TransformActionNode {...props} />;
         }
     }
 
@@ -307,6 +321,12 @@ function WorkflowPage() {
             if (normalizedName.includes("ai")) {
                 return AiActionContents;
             }
+            if (normalizedName.includes("delay")) {
+                return DelayActionContents;
+            }
+            if (normalizedName.includes("transform")) {
+                return TransformActionContents;
+            }
         }
 
         return null;
@@ -427,7 +447,34 @@ function WorkflowPage() {
                                     ? { method: "POST", url: "", body: "" }
                                     : kind === "action" && normalizedLabel.includes("ai")
                                         ? { provider: "gemini", model: "gemini-1.5-flash", prompt: "" }
-                                        : {},
+                                        : kind === "action" && normalizedLabel.includes("delay")
+                                            ? { delayValue: 5, delayUnit: "seconds" }
+                                            : kind === "action" && normalizedLabel.includes("transform")
+                                                ? (() => {
+                                                    const actionNodes = currentNodes.filter((n) => n.data.kind === "action");
+                                                    let latestVar = "";
+                                                    if (actionNodes.length > 0) {
+                                                        const sortedActions = [...actionNodes].sort((a, b) => b.position.y - a.position.y);
+                                                        const lastActionId = sortedActions[0].id;
+                                                        const vars = getAvailableVariables(lastActionId, currentNodes, edges);
+                                                        latestVar = vars[0]?.variable || "";
+                                                    } else {
+                                                        const triggerNode = currentNodes.find((n) => n.data.kind === "trigger");
+                                                        if (triggerNode) {
+                                                            const vars = getAvailableVariables(triggerNode.id, currentNodes, edges);
+                                                            latestVar = vars[0]?.variable || "";
+                                                        }
+                                                    }
+                                                    return {
+                                                        input: latestVar,
+                                                        operation: "custom",
+                                                        searchText: "",
+                                                        replaceText: "",
+                                                        appendText: "",
+                                                        prependText: ""
+                                                    };
+                                                })()
+                                                : {},
                     },
                 };
 
@@ -445,7 +492,7 @@ function WorkflowPage() {
             setSearchTerm("");
             setIsLibraryOpen(false);
         },
-        [isTriggerTab, markDirty],
+        [isTriggerTab, markDirty, edges],
     );
 
     const onNodeClick = useCallback((_: MouseEvent, node: WorkflowNode) => {

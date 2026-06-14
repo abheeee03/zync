@@ -55,7 +55,12 @@ export const ExecuteJob = async (runId: string) => {
         data: { status: "RUNNING", current_step: currentStep },
     });
 
-    const context: Record<string, string> = {};
+    const context: Record<string, string> = {
+        "trigger.timestamp": new Date().toISOString(),
+        "trigger.time": new Date().toLocaleTimeString(),
+        "trigger.body": JSON.stringify({ message: "Hello Zync workflow!" }),
+        "trigger.query": JSON.stringify({ source: "direct_test" }),
+    };
 
     try {
         for (let i = currentStep; i < actions.length; i++) {
@@ -67,9 +72,22 @@ export const ExecuteJob = async (runId: string) => {
             // Execute the action with the interpolated metadata
             const result = await executeAction(step.action.name, interpolatedMetaData, data.workflow.userId);
             
-            // If this is an AI action, save the result to the context under "data.message"
-            if (step.action.name.toLowerCase() === "ai" && result) {
-                context["data.message"] = typeof result === "string" ? result : JSON.stringify(result);
+            // Save step output/result to context for downstream interpolation
+            const actionNameLower = step.action.name.toLowerCase();
+            if (result !== undefined && result !== null) {
+                if (actionNameLower === "ai" || actionNameLower === "ai action") {
+                    context["data.message"] = typeof result === "string" ? result : JSON.stringify(result);
+                } else if (actionNameLower === "transform" || actionNameLower === "transform action") {
+                    const strVal = typeof result === "string" ? result : JSON.stringify(result);
+                    context["transform.result"] = strVal;
+                    context["data.message"] = strVal; // Compatibility fallback
+                } else if (actionNameLower === "webhook" || actionNameLower === "http request") {
+                    context["webhook.response"] = typeof result === "string" ? result : JSON.stringify(result);
+                } else if (actionNameLower === "notion" || actionNameLower === "notion action") {
+                    const notionRes = result as { pageId?: string; url?: string };
+                    context["notion.pageId"] = notionRes.pageId || "";
+                    context["notion.url"] = notionRes.url || "";
+                }
             }
 
             await prisma.workflowRun.update({
