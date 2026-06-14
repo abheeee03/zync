@@ -19,6 +19,7 @@ async function main() {
   const actions = [
     { name: "webhook" },
     { name: "notion" },
+    { name: "ai" },
   ];
 
   console.log("Seeding available triggers...");

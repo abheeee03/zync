@@ -55,10 +55,23 @@ export const ExecuteJob = async (runId: string) => {
         data: { status: "RUNNING", current_step: currentStep },
     });
 
+    const context: Record<string, string> = {};
+
     try {
         for (let i = currentStep; i < actions.length; i++) {
             const step = actions[i];
-            await executeAction(step.action.name, step.metaData, data.workflow.userId);
+            
+            // Interpolate dynamic variables (e.g. {data.message}) inside the step metadata using current context
+            const interpolatedMetaData = interpolateMetaData(step.metaData, context);
+
+            // Execute the action with the interpolated metadata
+            const result = await executeAction(step.action.name, interpolatedMetaData, data.workflow.userId);
+            
+            // If this is an AI action, save the result to the context under "data.message"
+            if (step.action.name.toLowerCase() === "ai" && result) {
+                context["data.message"] = typeof result === "string" ? result : JSON.stringify(result);
+            }
+
             await prisma.workflowRun.update({
                 where: { id: runId },
                 data: { current_step: i + 1 },
@@ -76,4 +89,24 @@ export const ExecuteJob = async (runId: string) => {
         });
         throw e;
     }
+}
+
+function interpolateMetaData(obj: any, context: Record<string, string>): any {
+    if (typeof obj === "string") {
+        let result = obj;
+        for (const [key, val] of Object.entries(context)) {
+            const placeholder = `{${key}}`;
+            result = result.split(placeholder).join(val);
+        }
+        return result;
+    } else if (Array.isArray(obj)) {
+        return obj.map((item) => interpolateMetaData(item, context));
+    } else if (obj !== null && typeof obj === "object") {
+        const newObj: Record<string, any> = {};
+        for (const [k, v] of Object.entries(obj)) {
+            newObj[k] = interpolateMetaData(v, context);
+        }
+        return newObj;
+    }
+    return obj;
 }

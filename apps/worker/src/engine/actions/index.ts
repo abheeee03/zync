@@ -1,9 +1,14 @@
 import { Json } from "@repo/shared/types";
 import { executeWebhook } from "./webhook";
 import { executeNotionAction } from "./notion";
+import { executeAiAction } from "./ai";
 
 export const executeAction = async (actionName: string, metaData: Json, userId: string) => {
     switch (actionName.toLowerCase()) {
+        case "ai":
+        case "ai action": {
+            return await executeAiAction(metaData, userId);
+        }
         case "notion":
         case "notion action": {
             await executeNotionAction(metaData, userId);

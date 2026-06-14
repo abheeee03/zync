@@ -65,12 +65,17 @@ import {
     NotionActionContents,
     NotionActionNode,
 } from "@/components/workflow/actions/notion";
+import {
+    AiActionContents,
+    AiActionNode,
+} from "@/components/workflow/actions/ai";
 import type {
     WorkflowEdge,
     WorkflowNode,
     WorkflowNodeKind,
 } from "@/components/workflow/types";
 import Loader from "@/components/loader";
+import { sileo } from "sileo";
 
 export type SavedWorkflowResponse = {
     isActive: boolean;
@@ -117,6 +122,9 @@ function WorkflowNodeRenderer(props: NodeProps<WorkflowNode>) {
         }
         if (nodeName.includes("webhook")) {
             return <WebhookActionNode {...props} />;
+        }
+        if (nodeName.includes("ai")) {
+            return <AiActionNode {...props} />;
         }
     }
 
@@ -291,6 +299,9 @@ function WorkflowPage() {
             if (normalizedName.includes("webhook")) {
                 return WebhookActionContents;
             }
+            if (normalizedName.includes("ai")) {
+                return AiActionContents;
+            }
         }
 
         return null;
@@ -409,6 +420,8 @@ function WorkflowPage() {
                                 ? { actionType: "create_page", databaseId: "", databaseTitle: "", fieldValues: {}, blockContent: "", targetPageId: "", filterProperty: "", filterValue: "" }
                                 : kind === "action" && normalizedLabel.includes("webhook")
                                 ? { method: "POST", url: "", body: "" }
+                                : kind === "action" && normalizedLabel.includes("ai")
+                                ? { provider: "gemini", model: "gemini-1.5-flash", prompt: "" }
                                 : {},
                     },
                 };
@@ -514,6 +527,18 @@ function WorkflowPage() {
                     size="sm"
                     className="h-8 rounded-full px-4 text-xs font-semibold"
                     onClick={() => {
+                        if (!isActive) {
+                            const aiNodes = nodes.filter(n => n.data.label.toLowerCase().includes("ai"));
+                            const hasDisconnectedAi = aiNodes.some(aiNode => {
+                                const hasOutgoing = edges.some(e => e.source === aiNode.id);
+                                return !hasOutgoing;
+                            });
+
+                            if (hasDisconnectedAi) {
+                                sileo.error({ title: "Error: AI nodes must be connected to a subsequent node to process their output." });
+                                return;
+                            }
+                        }
                         setIsActive(!isActive);
                         markDirty();
                     }}
