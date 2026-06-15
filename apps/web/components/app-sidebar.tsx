@@ -89,14 +89,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-              <a href="#" className="flex gap-2 items-center justify-center">
-                <div className="bg-accent px-1 py-1 rounded-xs bg-linear-to-b from-blue-500 to-blue-700">
-                  <Logo/>
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="text-xl font-medium">zync</span>
-                </div>
-              </a>
+            <a href="#" className="flex gap-2 items-center justify-center">
+              <Logo />
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="text-xl font-medium">zync</span>
+              </div>
+            </a>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
