@@ -4,6 +4,7 @@ import { executeNotionAction } from "./notion";
 import { executeAiAction } from "./ai";
 import { executeDelayAction } from "./delay";
 import { executeTransformAction } from "./transform";
+import { executeGithubAction } from "./github";
 
 export const executeAction = async (actionName: string, metaData: Json, userId: string) => {
     switch (actionName.toLowerCase()) {
@@ -23,6 +24,15 @@ export const executeAction = async (actionName: string, metaData: Json, userId: 
         case "notion action": {
             await executeNotionAction(metaData, userId);
             return;
+        }
+        case "github":
+        case "github action":
+        case "create_issue":
+        case "create_comment":
+        case "create_pr":
+        case "create_branch":
+        case "get_repo": {
+            return await executeGithubAction(actionName, metaData, userId);
         }
         case "webhook":
         case "http request": {

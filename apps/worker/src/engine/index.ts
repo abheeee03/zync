@@ -1,7 +1,7 @@
 import { prisma } from "@repo/prisma/client"
 import { executeAction } from "./actions";
 
-export const ExecuteJob = async (runId: string) => {
+export const ExecuteJob = async (runId: string, triggerPayload?: any) => {
     const data = await prisma.workflowRun.findUnique({
         where: {
             id: runId
@@ -58,9 +58,15 @@ export const ExecuteJob = async (runId: string) => {
     const context: Record<string, string> = {
         "trigger.timestamp": new Date().toISOString(),
         "trigger.time": new Date().toLocaleTimeString(),
-        "trigger.body": JSON.stringify({ message: "Hello Zync workflow!" }),
+        "trigger.body": triggerPayload ? (typeof triggerPayload === "string" ? triggerPayload : JSON.stringify(triggerPayload)) : JSON.stringify({ message: "Hello Zync workflow!" }),
         "trigger.query": JSON.stringify({ source: "direct_test" }),
     };
+
+    if (triggerPayload && typeof triggerPayload === "object") {
+        for (const [key, value] of Object.entries(triggerPayload)) {
+            context[`trigger.${key}`] = typeof value === "string" ? value : JSON.stringify(value);
+        }
+    }
 
     try {
         for (let i = currentStep; i < actions.length; i++) {
@@ -87,6 +93,23 @@ export const ExecuteJob = async (runId: string) => {
                     const notionRes = result as { pageId?: string; url?: string };
                     context["notion.pageId"] = notionRes.pageId || "";
                     context["notion.url"] = notionRes.url || "";
+                } else if (
+                    actionNameLower === "github" ||
+                    actionNameLower === "github action" ||
+                    actionNameLower === "create_issue" ||
+                    actionNameLower === "create_comment" ||
+                    actionNameLower === "create_pr" ||
+                    actionNameLower === "create_branch" ||
+                    actionNameLower === "get_repo"
+                ) {
+                    const strVal = typeof result === "string" ? result : JSON.stringify(result);
+                    context["github.response"] = strVal;
+                    context["data.message"] = strVal; // compatibility fallback
+                    if (result && typeof result === "object") {
+                        for (const [key, value] of Object.entries(result)) {
+                            context[`github.${key}`] = typeof value === "string" ? value : JSON.stringify(value);
+                        }
+                    }
                 }
             }
 

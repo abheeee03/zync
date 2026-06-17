@@ -38,6 +38,11 @@ export default function CredentialsPage() {
         workspaceName: null,
         loading: true,
     });
+    const [githubStatus, setGithubStatus] = useState<IntegrationStatus>({
+        connected: false,
+        workspaceName: null,
+        loading: true,
+    });
 
     const [geminiApiKey, setGeminiApiKey] = useState("");
     const [isConnectingGemini, setIsConnectingGemini] = useState(false);
@@ -95,6 +100,17 @@ export default function CredentialsPage() {
         } catch {
             setClaudeStatus((prev) => ({ ...prev, loading: false }));
         }
+
+        try {
+            const githubRes = await axios.get("/api/github/status");
+            setGithubStatus({
+                connected: githubRes.data.connected,
+                workspaceName: githubRes.data.workspaceName,
+                loading: false,
+            });
+        } catch {
+            setGithubStatus((prev) => ({ ...prev, loading: false }));
+        }
     };
 
     useEffect(() => {
@@ -112,6 +128,20 @@ export default function CredentialsPage() {
             sileo.success({ title: "Disconnected Notion successfully" });
         } catch {
             sileo.error({ title: "Failed to disconnect Notion" });
+        }
+    };
+
+    const handleConnectGithub = () => {
+        window.location.href = "/api/github/connect";
+    };
+
+    const handleDisconnectGithub = async () => {
+        try {
+            await axios.delete("/api/github/status");
+            setGithubStatus({ connected: false, workspaceName: null, loading: false });
+            sileo.success({ title: "Disconnected GitHub successfully" });
+        } catch {
+            sileo.error({ title: "Failed to disconnect GitHub" });
         }
     };
 
@@ -202,7 +232,7 @@ export default function CredentialsPage() {
         }
     };
 
-    const isLoading = notionStatus.loading || geminiStatus.loading || chatgptStatus.loading || claudeStatus.loading;
+    const isLoading = notionStatus.loading || geminiStatus.loading || chatgptStatus.loading || claudeStatus.loading || githubStatus.loading;
 
     if (isLoading) {
         return (
@@ -258,6 +288,47 @@ export default function CredentialsPage() {
                         ) : (
                             <Button size="sm" onClick={handleConnectNotion}>
                                 Connect Notion
+                            </Button>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* GitHub Card */}
+                <Card className="flex flex-col justify-between border-border/60 bg-muted/10">
+                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                        <div className="space-y-1">
+                            <CardTitle className="text-xl font-bold flex items-center gap-2">
+                                <span className="flex size-7 items-center justify-center rounded bg-zinc-900 text-white dark:bg-zinc-800 dark:border dark:border-zinc-700 font-bold text-xs select-none">
+                                    G
+                                </span>
+                                GitHub
+                            </CardTitle>
+                            <CardDescription className="pt-2 text-xs">
+                                Automate repositories, pull requests, issues, comments, and branches.
+                            </CardDescription>
+                        </div>
+                        {githubStatus.connected && (
+                            <div className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-500">
+                                <HugeiconsIcon icon={Tick02Icon} size={12} />
+                                Connected
+                            </div>
+                        )}
+                    </CardHeader>
+                    <CardContent className="pt-4 flex items-end justify-between">
+                        <div className="text-xs text-muted-foreground">
+                            {githubStatus.connected ? (
+                                <span>Username: <strong className="text-foreground">{githubStatus.workspaceName}</strong></span>
+                            ) : (
+                                <span>Not connected</span>
+                            )}
+                        </div>
+                        {githubStatus.connected ? (
+                            <Button variant="outline" size="sm" onClick={handleDisconnectGithub} className="text-destructive hover:bg-destructive/10">
+                                Disconnect
+                            </Button>
+                        ) : (
+                            <Button size="sm" onClick={handleConnectGithub}>
+                                Connect GitHub
                             </Button>
                         )}
                     </CardContent>

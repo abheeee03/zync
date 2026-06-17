@@ -38,19 +38,19 @@ export default function Home() {
 
   return (
     <div className=''>
-      <div className="h-full w-full">
+      <div className="h-full w-full px-6">
         <div className="flex w-full items-center justify-between">
           <h1>
-             Workflows
+            Workflows
           </h1>
           <Button
-          variant={"accent"}
-          asChild>
-            <Link 
+            variant={"accent"}
+            asChild>
+            <Link
               className="flex gap-2 items-center justify-center"
               href={'/workflow'}>
-                New Workflow 
-                <HugeiconsIcon icon={PlusSignIcon} />
+              New Workflow
+              <HugeiconsIcon icon={PlusSignIcon} />
             </Link>
           </Button>
         </div>

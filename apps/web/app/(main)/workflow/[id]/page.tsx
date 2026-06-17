@@ -77,6 +77,14 @@ import {
     TransformActionContents,
     TransformActionNode,
 } from "@/components/workflow/actions/transform";
+import {
+    GithubActionContents,
+    GithubActionNode,
+} from "@/components/workflow/actions/github";
+import {
+    GithubTriggerContents,
+    GithubTriggerNode,
+} from "@/components/workflow/triggers/github";
 import type {
     WorkflowEdge,
     WorkflowNode,
@@ -123,6 +131,14 @@ function WorkflowNodeRenderer(props: NodeProps<WorkflowNode>) {
         if (nodeName.includes("schedule")) {
             return <ScheduleTriggerNode {...props} />;
         }
+        if (
+            nodeName.includes("push") ||
+            nodeName.includes("pull_request") ||
+            nodeName.includes("issue_opened") ||
+            nodeName.includes("release_published")
+        ) {
+            return <GithubTriggerNode {...props} />;
+        }
     }
 
     if (props.data.kind === "action") {
@@ -140,6 +156,16 @@ function WorkflowNodeRenderer(props: NodeProps<WorkflowNode>) {
         }
         if (nodeName.includes("transform")) {
             return <TransformActionNode {...props} />;
+        }
+        if (
+            nodeName.includes("github") ||
+            nodeName.includes("create_issue") ||
+            nodeName.includes("create_comment") ||
+            nodeName.includes("create_pr") ||
+            nodeName.includes("create_branch") ||
+            nodeName.includes("get_repo")
+        ) {
+            return <GithubActionNode {...props} />;
         }
     }
 
@@ -310,6 +336,14 @@ function WorkflowPage() {
             if (normalizedName.includes("schedule")) {
                 return ScheduleTriggerContents;
             }
+            if (
+                normalizedName.includes("push") ||
+                normalizedName.includes("pull_request") ||
+                normalizedName.includes("issue_opened") ||
+                normalizedName.includes("release_published")
+            ) {
+                return GithubTriggerContents;
+            }
         }
         if (selectedNode.data.kind === "action") {
             if (normalizedName.includes("notion")) {
@@ -326,6 +360,16 @@ function WorkflowPage() {
             }
             if (normalizedName.includes("transform")) {
                 return TransformActionContents;
+            }
+            if (
+                normalizedName.includes("github") ||
+                normalizedName.includes("create_issue") ||
+                normalizedName.includes("create_comment") ||
+                normalizedName.includes("create_pr") ||
+                normalizedName.includes("create_branch") ||
+                normalizedName.includes("get_repo")
+            ) {
+                return GithubActionContents;
             }
         }
 
@@ -441,40 +485,74 @@ function WorkflowPage() {
                         kind,
                         label,
                         metaData:
-                            kind === "action" && normalizedLabel.includes("notion")
-                                ? { actionType: "create_page", databaseId: "", databaseTitle: "", fieldValues: {}, blockContent: "", targetPageId: "", filterProperty: "", filterValue: "" }
-                                : kind === "action" && normalizedLabel.includes("webhook")
-                                    ? { method: "POST", url: "", body: "" }
-                                    : kind === "action" && normalizedLabel.includes("ai")
-                                        ? { provider: "gemini", model: "gemini-1.5-flash", prompt: "" }
-                                        : kind === "action" && normalizedLabel.includes("delay")
-                                            ? { delayValue: 5, delayUnit: "seconds" }
-                                            : kind === "action" && normalizedLabel.includes("transform")
-                                                ? (() => {
-                                                    const actionNodes = currentNodes.filter((n) => n.data.kind === "action");
-                                                    let latestVar = "";
-                                                    if (actionNodes.length > 0) {
-                                                        const sortedActions = [...actionNodes].sort((a, b) => b.position.y - a.position.y);
-                                                        const lastActionId = sortedActions[0].id;
-                                                        const vars = getAvailableVariables(lastActionId, currentNodes, edges);
-                                                        latestVar = vars[0]?.variable || "";
-                                                    } else {
-                                                        const triggerNode = currentNodes.find((n) => n.data.kind === "trigger");
-                                                        if (triggerNode) {
-                                                            const vars = getAvailableVariables(triggerNode.id, currentNodes, edges);
+                            kind === "trigger" && (
+                                normalizedLabel.includes("push") ||
+                                normalizedLabel.includes("pull_request") ||
+                                normalizedLabel.includes("issue_opened") ||
+                                normalizedLabel.includes("release_published")
+                            )
+                                ? { repository: "" }
+                                : kind === "action" && normalizedLabel.includes("notion")
+                                    ? { actionType: "create_page", databaseId: "", databaseTitle: "", fieldValues: {}, blockContent: "", targetPageId: "", filterProperty: "", filterValue: "" }
+                                    : kind === "action" && normalizedLabel.includes("webhook")
+                                        ? { method: "POST", url: "", body: "" }
+                                        : kind === "action" && normalizedLabel.includes("ai")
+                                            ? { provider: "gemini", model: "gemini-1.5-flash", prompt: "" }
+                                            : kind === "action" && normalizedLabel.includes("delay")
+                                                ? { delayValue: 5, delayUnit: "seconds" }
+                                                : kind === "action" && normalizedLabel.includes("transform")
+                                                    ? (() => {
+                                                        const actionNodes = currentNodes.filter((n) => n.data.kind === "action");
+                                                        let latestVar = "";
+                                                        if (actionNodes.length > 0) {
+                                                            const sortedActions = [...actionNodes].sort((a, b) => b.position.y - a.position.y);
+                                                            const lastActionId = sortedActions[0].id;
+                                                            const vars = getAvailableVariables(lastActionId, currentNodes, edges);
                                                             latestVar = vars[0]?.variable || "";
+                                                        } else {
+                                                            const triggerNode = currentNodes.find((n) => n.data.kind === "trigger");
+                                                            if (triggerNode) {
+                                                                const vars = getAvailableVariables(triggerNode.id, currentNodes, edges);
+                                                                latestVar = vars[0]?.variable || "";
+                                                            }
                                                         }
-                                                    }
-                                                    return {
-                                                        input: latestVar,
-                                                        operation: "custom",
-                                                        searchText: "",
-                                                        replaceText: "",
-                                                        appendText: "",
-                                                        prependText: ""
-                                                    };
-                                                })()
-                                                : {},
+                                                        return {
+                                                            input: latestVar,
+                                                            operation: "custom",
+                                                            searchText: "",
+                                                            replaceText: "",
+                                                            appendText: "",
+                                                            prependText: ""
+                                                        };
+                                                    })()
+                                                    : kind === "action" && (
+                                                        normalizedLabel.includes("github") ||
+                                                        normalizedLabel.includes("create_issue") ||
+                                                        normalizedLabel.includes("create_comment") ||
+                                                        normalizedLabel.includes("create_pr") ||
+                                                        normalizedLabel.includes("create_branch") ||
+                                                        normalizedLabel.includes("get_repo")
+                                                    )
+                                                        ? {
+                                                            actionType: normalizedLabel.includes("create_comment")
+                                                                ? "create_comment"
+                                                                : normalizedLabel.includes("create_pr")
+                                                                    ? "create_pr"
+                                                                    : normalizedLabel.includes("create_branch")
+                                                                        ? "create_branch"
+                                                                        : normalizedLabel.includes("get_repo")
+                                                                            ? "get_repo"
+                                                                            : "create_issue",
+                                                            repo: "",
+                                                            title: "",
+                                                            body: "",
+                                                            issueNumber: "",
+                                                            head: "",
+                                                            base: "main",
+                                                            branchName: "",
+                                                            baseBranch: "main",
+                                                        }
+                                                        : {},
                     },
                 };
 

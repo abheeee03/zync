@@ -24,6 +24,13 @@ export async function POST(request: NextRequest, ctx: {
         }, { status: 404 })
     }
 
+    let triggerPayload: any = null;
+    try {
+        triggerPayload = await request.json();
+    } catch (e) {
+        // Fallback or ignore if not JSON
+    }
+
     const data = await prisma.workflowRun.create({
         data: {
             workflowId
@@ -46,7 +53,7 @@ export async function POST(request: NextRequest, ctx: {
     }
 
     try {
-        await workflowQueue.add("workflow-run", { runId: data.id }, { jobId: data.id })
+        await workflowQueue.add("workflow-run", { runId: data.id, triggerPayload }, { jobId: data.id })
         return NextResponse.json({
             message: "successfully started the workflow"
         })

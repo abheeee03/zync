@@ -101,6 +101,118 @@ export function getAvailableVariables(currentNodeId: string | null, nodes: any[]
                 variable: "{transform.result}",
                 nodeLabel: node.data?.label ?? "Transform Action",
             });
+        } else if (
+            nodeName.includes("push") ||
+            nodeName.includes("pull_request") ||
+            nodeName.includes("issue_opened") ||
+            nodeName.includes("release_published")
+        ) {
+            variables.push({
+                label: "Trigger Repository",
+                variable: "{trigger.repository}",
+                nodeLabel: node.data?.label ?? "GitHub Trigger",
+            });
+            variables.push({
+                label: "Trigger Sender Username",
+                variable: "{trigger.sender}",
+                nodeLabel: node.data?.label ?? "GitHub Trigger",
+            });
+            if (nodeName.includes("push")) {
+                variables.push({
+                    label: "Git Ref",
+                    variable: "{trigger.ref}",
+                    nodeLabel: node.data?.label ?? "Push Trigger",
+                });
+                variables.push({
+                    label: "Commit SHA",
+                    variable: "{trigger.commit_sha}",
+                    nodeLabel: node.data?.label ?? "Push Trigger",
+                });
+            } else if (nodeName.includes("pull_request")) {
+                variables.push({
+                    label: "PR Number",
+                    variable: "{trigger.pr_number}",
+                    nodeLabel: node.data?.label ?? "PR Trigger",
+                });
+                variables.push({
+                    label: "PR Title",
+                    variable: "{trigger.pr_title}",
+                    nodeLabel: node.data?.label ?? "PR Trigger",
+                });
+            } else if (nodeName.includes("issue_opened")) {
+                variables.push({
+                    label: "Issue Number",
+                    variable: "{trigger.issue_number}",
+                    nodeLabel: node.data?.label ?? "Issue Trigger",
+                });
+                variables.push({
+                    label: "Issue Title",
+                    variable: "{trigger.issue_title}",
+                    nodeLabel: node.data?.label ?? "Issue Trigger",
+                });
+            } else if (nodeName.includes("release_published")) {
+                variables.push({
+                    label: "Release Tag",
+                    variable: "{trigger.release_tag}",
+                    nodeLabel: node.data?.label ?? "Release Trigger",
+                });
+                variables.push({
+                    label: "Release Name",
+                    variable: "{trigger.release_name}",
+                    nodeLabel: node.data?.label ?? "Release Trigger",
+                });
+            }
+        } else if (
+            nodeName.includes("github") ||
+            nodeName.includes("create_issue") ||
+            nodeName.includes("create_comment") ||
+            nodeName.includes("create_pr") ||
+            nodeName.includes("create_branch") ||
+            nodeName.includes("get_repo")
+        ) {
+            variables.push({
+                label: "GitHub Action Response",
+                variable: "{github.response}",
+                nodeLabel: node.data?.label ?? "GitHub Action",
+            });
+            if (nodeName.includes("create_issue") || nodeName.includes("create_pr") || nodeName.includes("create_comment") || nodeName.includes("github")) {
+                variables.push({
+                    label: "GitHub HTML URL",
+                    variable: "{github.url}",
+                    nodeLabel: node.data?.label ?? "GitHub Action",
+                });
+            }
+            if (nodeName.includes("create_issue") || nodeName.includes("github")) {
+                variables.push({
+                    label: "GitHub Issue ID",
+                    variable: "{github.issueId}",
+                    nodeLabel: node.data?.label ?? "GitHub Action",
+                });
+                variables.push({
+                    label: "GitHub Issue Number",
+                    variable: "{github.issueNumber}",
+                    nodeLabel: node.data?.label ?? "GitHub Action",
+                });
+            }
+            if (nodeName.includes("create_pr") || nodeName.includes("github")) {
+                variables.push({
+                    label: "GitHub PR ID",
+                    variable: "{github.prId}",
+                    nodeLabel: node.data?.label ?? "GitHub Action",
+                });
+                variables.push({
+                    label: "GitHub PR Number",
+                    variable: "{github.prNumber}",
+                    nodeLabel: node.data?.label ?? "GitHub Action",
+                });
+            }
+            if (nodeName.includes("create_branch") || nodeName.includes("github")) {
+                variables.push({
+                    label: "GitHub Branch Commit SHA",
+                    variable: "{github.sha}",
+                    nodeLabel: node.data?.label ?? "GitHub Action",
+                });
+            }
         }
     }
 

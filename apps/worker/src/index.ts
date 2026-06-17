@@ -9,7 +9,7 @@ let QUEUE_NAME = "workflow-runs"
 export const worker = new Worker(QUEUE_NAME, async (job) => {
     if (job.data?.runId) {
         try {
-            await ExecuteJob(job.data.runId);
+            await ExecuteJob(job.data.runId, job.data.triggerPayload);
         } catch (e) {
             console.error("Worker error:", e);
             throw e;
