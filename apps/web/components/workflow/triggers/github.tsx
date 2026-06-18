@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Copy01Icon, Tick02Icon, InformationCircleIcon } from "@hugeicons/core-free-icons";
+import { GithubIcon } from "@/components/icons";
 
 type NodeEditorProps = {
     value: Record<string, unknown>;
@@ -27,8 +28,8 @@ function GithubTriggerNodeView(props: NodeProps<WorkflowNode>) {
         <BaseNode {...props}>
             <div className="rounded-lg border border-dashed border-zinc-500/40 bg-zinc-500/5 px-3 py-3">
                 <div className="flex items-center gap-2">
-                    <span className="flex size-5 items-center justify-center rounded bg-zinc-900 text-white font-bold text-[9px] select-none">
-                        Git
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded bg-zinc-900 dark:bg-zinc-800 text-white select-none">
+                        <GithubIcon width={12} height={12} />
                     </span>
                     <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                         {label}

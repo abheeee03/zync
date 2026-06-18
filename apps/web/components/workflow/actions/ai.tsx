@@ -13,6 +13,7 @@ import {
     Tick02Icon,
     AiBrain01Icon,
 } from "@hugeicons/core-free-icons";
+import { AiProviderIcon } from "../node-icon";
 import { VariableSuggestions, type VariableInfo } from "../variable-suggestions";
 
 type NodeEditorProps = {
@@ -30,8 +31,8 @@ function AiActionNodeView(props: NodeProps<WorkflowNode>) {
         <BaseNode {...props}>
             <div className="rounded-lg border border-border/70 bg-muted/20 px-3 py-3">
                 <div className="flex items-center gap-2">
-                    <div className="flex size-6 shrink-0 items-center justify-center rounded bg-gradient-to-tr from-blue-600 to-indigo-400 text-white font-bold text-xs select-none">
-                        <HugeiconsIcon icon={AiBrain01Icon} size={12} />
+                    <div className="flex size-6 shrink-0 items-center justify-center rounded bg-white text-white font-bold text-xs select-none">
+                        <AiProviderIcon provider={provider} size={15} />
                     </div>
                     <div>
                         <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">

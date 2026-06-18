@@ -35,13 +35,12 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
     Add01Icon,
     AlertCircleIcon,
-    Calendar01Icon,
     CloudIcon,
     Delete01Icon,
-    Globe02Icon,
     Loading03Icon,
     Tick02Icon,
 } from "@hugeicons/core-free-icons";
+import { NodeIcon } from "@/components/workflow/node-icon";
 import { cn } from "@/lib/utils";
 import type { AvailableActions, AvailableTriggers } from "@repo/shared/types";
 import BaseNode from "@/components/workflow/base-node";
@@ -774,8 +773,9 @@ function WorkflowPage() {
                                                         className="group flex cursor-pointer items-center justify-start gap-3 rounded-xl px-3 py-3 text-left text-sm transition-all duration-150 hover:bg-primary/5 hover:text-primary active:scale-[0.98]"
                                                     >
                                                         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted transition-colors group-hover:bg-primary/10 group-hover:text-primary">
-                                                            <HugeiconsIcon
-                                                                icon={isTriggerTab ? Calendar01Icon : Globe02Icon}
+                                                            <NodeIcon
+                                                                label={item.name}
+                                                                kind={isTriggerTab ? "trigger" : "action"}
                                                                 size={16}
                                                             />
                                                         </div>
@@ -844,10 +844,13 @@ function WorkflowPage() {
                                         : "bg-muted text-muted-foreground",
                                 )}
                             >
-                                <HugeiconsIcon
-                                    icon={selectedNode?.data.kind === "trigger" ? Calendar01Icon : Globe02Icon}
-                                    size={24}
-                                />
+                                {selectedNode && (
+                                    <NodeIcon
+                                        label={selectedNode.data.label}
+                                        kind={selectedNode.data.kind}
+                                        size={22}
+                                    />
+                                )}
                             </motion.div>
                             <div>
                                 <DrawerTitle className="text-xl font-semibold tracking-tight">

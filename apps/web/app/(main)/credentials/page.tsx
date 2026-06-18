@@ -333,7 +333,7 @@ export default function CredentialsPage() {
                     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                         <div className="space-y-1">
                             <CardTitle className="text-xl font-bold flex items-center gap-2">
-                                <span className="flex size-7 items-center justify-center rounded bg-gradient-to-tr from-blue-600 to-indigo-400 text-white font-bold text-xs select-none">
+                                <span className="flex size-7 items-center justify-center rounded bg-linear-to-tr from-blue-600 to-indigo-400 text-white font-bold text-xs select-none">
                                     G
                                 </span>
                                 Gemini AI

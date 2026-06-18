@@ -1,9 +1,8 @@
 import type { ReactNode } from 'react';
 import type { WorkflowNode } from './types';
 import { cn } from '@/lib/utils';
-import { Calendar01Icon, Globe02Icon } from '@hugeicons/core-free-icons';
-import { HugeiconsIcon } from '@hugeicons/react';
 import { Handle, NodeProps, Position } from '@xyflow/react';
+import { NodeIcon } from './node-icon';
 
 type BaseNodeProps = NodeProps<WorkflowNode> & {
     children?: ReactNode;
@@ -35,7 +34,7 @@ function BaseNode({ data, isConnectable, selected, children }: BaseNodeProps) {
                         isTrigger ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
                     )}
                 >
-                    <HugeiconsIcon icon={isTrigger ? Calendar01Icon : Globe02Icon} strokeWidth={2} />
+                    <NodeIcon label={data.label} kind={data.kind} size={18} />
                 </div>
                 <div className="min-w-0 flex-1">
                     <p className="mb-1 text-[10px] font-bold uppercase tracking-wider leading-none text-muted-foreground">

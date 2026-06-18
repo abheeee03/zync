@@ -13,6 +13,7 @@ import {
     Tick02Icon,
     GitBranchIcon,
 } from "@hugeicons/core-free-icons";
+import { GithubIcon } from "@/components/icons";
 import { VariableSuggestions, type VariableInfo } from "../variable-suggestions";
 
 type NodeEditorProps = {
@@ -38,8 +39,8 @@ function GithubActionNodeView(props: NodeProps<WorkflowNode>) {
         <BaseNode {...props}>
             <div className="rounded-lg border border-border/70 bg-muted/20 px-3 py-3">
                 <div className="flex items-center gap-2">
-                    <div className="flex size-6 shrink-0 items-center justify-center rounded bg-zinc-900 text-white dark:bg-zinc-800 dark:border dark:border-zinc-700 font-bold text-xs select-none">
-                        Git
+                    <div className="flex size-6 shrink-0 items-center justify-center rounded bg-zinc-900 text-white dark:bg-zinc-800 dark:border dark:border-zinc-700 select-none">
+                        <GithubIcon width={14} height={14} />
                     </div>
                     <div>
                         <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
@@ -148,8 +149,8 @@ function GithubActionContents({ value, onChange, variables }: NodeEditorProps) {
 
             <div className="flex items-center justify-between rounded-xl border border-border bg-muted/10 px-4 py-3">
                 <div className="flex items-center gap-2">
-                    <span className="flex size-5 items-center justify-center rounded bg-zinc-900 text-white text-[10px] font-bold">
-                        Git
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded bg-zinc-900 text-white">
+                        <GithubIcon width={11} height={11} />
                     </span>
                     <span className="text-xs font-semibold text-foreground">
                         {status.workspaceName || "Connected"}

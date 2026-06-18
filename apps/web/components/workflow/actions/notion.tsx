@@ -13,6 +13,7 @@ import {
     Tick02Icon,
     AlertCircleIcon,
 } from "@hugeicons/core-free-icons";
+import { NotionIcon } from "@/components/icons";
 import { VariableSuggestions, type VariableInfo } from "../variable-suggestions";
 
 type NodeEditorProps = {
@@ -57,7 +58,7 @@ function NotionActionNodeView(props: NodeProps<WorkflowNode>) {
             <div className="rounded-lg border border-border/70 bg-muted/20 px-3 py-3">
                 <div className="flex items-center gap-2">
                     <div className="flex size-6 shrink-0 items-center justify-center rounded bg-foreground text-background font-bold text-xs select-none">
-                        N
+                        <NotionIcon width={16} height={16} />
                     </div>
                     <div>
                         <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
@@ -258,8 +259,8 @@ function NotionActionContents({ value, onChange, variables }: NodeEditorProps) {
             <VariableSuggestions variables={variables ?? []} />
             <div className="flex items-center justify-between rounded-xl border border-border bg-muted/10 px-4 py-3">
                 <div className="flex items-center gap-2">
-                    <div className="flex size-5 items-center justify-center rounded bg-primary text-primary-foreground font-bold text-[10px]">
-                        N
+                    <div className="flex size-5 shrink-0 items-center justify-center rounded bg-foreground text-background">
+                        <NotionIcon width={13} height={13} />
                     </div>
                     <span className="text-xs font-semibold text-foreground">
                         {status.workspaceName || "Connected"}
