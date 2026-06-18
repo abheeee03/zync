@@ -28,7 +28,7 @@ export default function Home() {
   const [workflows, setWorkflows] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [prompt, setPrompt] = useState("")
-  const [agentState, setAgentState] = useState<AgentState>({ status: "loading" })
+  const [agentState, setAgentState] = useState<AgentState>({ status: "idle" })
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -133,7 +133,7 @@ export default function Home() {
         <WorkflowGrid workflows={workflows} />
       </div>
       <Dialog
-        open={true}
+        open={isDialogOpen}
         onOpenChange={() => {
           if (agentState.status === "error") {
             setAgentState({ status: "idle" })
