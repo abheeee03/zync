@@ -243,13 +243,7 @@ export default function CredentialsPage() {
     }
 
     return (
-        <div className="mx-auto w-full max-w-5xl space-y-8 py-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Credentials</h1>
-                <p className="text-muted-foreground mt-1">
-                    Manage authentication credentials and connection status for integrations.
-                </p>
-            </div>
+        <div className="mx-auto w-full space-y-8 py-6 px-6">
 
             <div className="grid gap-6 sm:grid-cols-2">
                 {/* Notion Card */}

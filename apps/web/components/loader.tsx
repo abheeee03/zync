@@ -11,12 +11,12 @@ const MESSAGES = [
   "speedrunning your workflow",
 ]
 
-function Loader() {
+function Loader({ messages = MESSAGES }: { messages?: string[] }) {
   const [index, setIndex] = useState(0)
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % MESSAGES.length)
+      setIndex((prev) => (prev + 1) % messages.length)
     }, 3000)
 
     return () => clearInterval(interval)
@@ -24,12 +24,12 @@ function Loader() {
 
   return (
     <div className="flex flex-col items-center justify-center gap-3">
-        <DotmSquare8 />
-        <EncryptedText
-          key={MESSAGES[index]}
-          text={MESSAGES[index]}
-          revealDelayMs={10}
-        />
+      <DotmSquare8 />
+      <EncryptedText
+        key={messages[index]}
+        text={messages[index]}
+        revealDelayMs={10}
+      />
     </div>
   )
 }
