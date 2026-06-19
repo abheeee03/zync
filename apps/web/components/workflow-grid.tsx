@@ -10,6 +10,16 @@ interface WorkflowGridProps {
         id: string
         name: string | null
         createdAt: Date
+        trigger?: {
+            availbleTriggers: {
+                name: string
+            }
+        } | null
+        actions?: {
+            action: {
+                name: string
+            }
+        }[]
     }[]
 }
 
@@ -55,6 +65,8 @@ export default function WorkflowGrid({ workflows }: WorkflowGridProps) {
                             id={workflow.id}
                             name={workflow.name || "Untitled"}
                             createdAt={workflow.createdAt}
+                            trigger={workflow.trigger}
+                            actions={workflow.actions}
                         />
                     </motion.div>
                 ))}

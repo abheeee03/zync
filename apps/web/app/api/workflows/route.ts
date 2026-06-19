@@ -16,6 +16,18 @@ export async function GET() {
     where: {
       userId: session.user.id,
     },
+    include: {
+      trigger: {
+        include: {
+          availbleTriggers: true
+        }
+      },
+      actions: {
+        include: {
+          action: true
+        }
+      }
+    },
     orderBy: {
       createdAt: 'desc'
     }

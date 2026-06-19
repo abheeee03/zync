@@ -7,7 +7,7 @@ export default async function createWorkflow(){
           headers: await headers()
     })
     if(!session){
-        redirect('/signin')
+        redirect('/login')
     }
     const data = await prisma.workflows.create({
         data: {

@@ -10,6 +10,7 @@ import Loader from "@/components/loader";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { LockPasswordIcon, Tick02Icon, Loading03Icon, Cancel01Icon, HelpCircleIcon } from "@hugeicons/core-free-icons";
 import { sileo } from "sileo";
+import { NotionIcon, GithubIcon, GeminiIcon, OpenaiIcon, ClaudeIcon } from "@/components/icons";
 
 type IntegrationStatus = {
     connected: boolean;
@@ -251,9 +252,7 @@ export default function CredentialsPage() {
                     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                         <div className="space-y-1">
                             <CardTitle className="text-xl font-bold flex items-center gap-2">
-                                <span className="flex size-7 items-center justify-center rounded bg-foreground text-background font-bold text-xs select-none">
-                                    N
-                                </span>
+                                <NotionIcon className="size-7 rounded" />
                                 Notion
                             </CardTitle>
                             <CardDescription className="pt-2 text-xs">
@@ -292,8 +291,8 @@ export default function CredentialsPage() {
                     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                         <div className="space-y-1">
                             <CardTitle className="text-xl font-bold flex items-center gap-2">
-                                <span className="flex size-7 items-center justify-center rounded bg-zinc-900 text-white dark:bg-zinc-800 dark:border dark:border-zinc-700 font-bold text-xs select-none">
-                                    G
+                                <span className="flex size-7 items-center justify-center rounded bg-zinc-950 dark:bg-zinc-900 text-white select-none border border-border/30">
+                                    <GithubIcon className="size-4" />
                                 </span>
                                 GitHub
                             </CardTitle>
@@ -333,9 +332,7 @@ export default function CredentialsPage() {
                     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                         <div className="space-y-1">
                             <CardTitle className="text-xl font-bold flex items-center gap-2">
-                                <span className="flex size-7 items-center justify-center rounded bg-linear-to-tr from-blue-600 to-indigo-400 text-white font-bold text-xs select-none">
-                                    G
-                                </span>
+                                <GeminiIcon className="size-7 rounded" />
                                 Gemini AI
                             </CardTitle>
                             <CardDescription className="pt-2 text-xs">
@@ -411,8 +408,8 @@ export default function CredentialsPage() {
                     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                         <div className="space-y-1">
                             <CardTitle className="text-xl font-bold flex items-center gap-2">
-                                <span className="flex size-7 items-center justify-center rounded bg-teal-600 text-white font-bold text-xs select-none">
-                                    O
+                                <span className="flex size-7 items-center justify-center rounded bg-teal-800/80 text-white select-none">
+                                    <OpenaiIcon className="size-4.5" />
                                 </span>
                                 ChatGPT (OpenAI)
                             </CardTitle>
@@ -489,8 +486,8 @@ export default function CredentialsPage() {
                     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                         <div className="space-y-1">
                             <CardTitle className="text-xl font-bold flex items-center gap-2">
-                                <span className="flex size-7 items-center justify-center rounded bg-orange-700 text-white font-bold text-xs select-none">
-                                    A
+                                <span className="flex size-7 items-center justify-center rounded bg-orange-950/40 text-[#d97757] select-none border border-orange-500/10">
+                                    <ClaudeIcon className="size-5" />
                                 </span>
                                 Claude (Anthropic)
                             </CardTitle>

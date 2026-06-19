@@ -2,26 +2,43 @@
 import { useRouter } from 'next/navigation'
 import { useState, useRef } from 'react'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import axios from 'axios'
 import { sileo } from "sileo"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { 
-    PencilEdit01Icon, 
-    Delete01Icon, 
+import {
+    PencilEdit01Icon,
+    Delete01Icon,
     ArrowUpRight
 } from "@hugeicons/core-free-icons"
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
+import { NodeIcon } from '@/components/workflow/node-icon'
 
-function WorkFlowCard({id, name, createdAt}: {id: string, name: string, createdAt: Date}) {
+interface WorkFlowCardProps {
+    id: string
+    name: string
+    createdAt: Date
+    trigger?: {
+        availbleTriggers: {
+            name: string
+        }
+    } | null
+    actions?: {
+        action: {
+            name: string
+        }
+    }[]
+}
+
+function WorkFlowCard({ id, name, createdAt, trigger, actions }: WorkFlowCardProps) {
     const router = useRouter()
     const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
     const [newName, setNewName] = useState(name)
@@ -53,7 +70,7 @@ function WorkFlowCard({id, name, createdAt}: {id: string, name: string, createdA
             setIsRenameDialogOpen(false)
             return
         }
-        
+
         setIsLoading(true)
         try {
             await axios.patch(`/api/workflow/${id}`, { name: newName })
@@ -69,7 +86,7 @@ function WorkFlowCard({id, name, createdAt}: {id: string, name: string, createdA
     const handleDelete = async (e: React.MouseEvent) => {
         e.preventDefault()
         e.stopPropagation()
-        
+
         if (!confirm("Are you sure you want to delete this workflow?")) return
 
         setIsLoading(true)
@@ -87,7 +104,7 @@ function WorkFlowCard({id, name, createdAt}: {id: string, name: string, createdA
     }
 
     return (
-        <div 
+        <div
             className='relative mb-10'
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
@@ -95,13 +112,60 @@ function WorkFlowCard({id, name, createdAt}: {id: string, name: string, createdA
             <motion.div
                 onClick={() => {
                     router.push(`/workflow/${id}`)
-                }} 
+                }}
                 whileTap={{ scale: 0.98 }}
-                className='h-25 w-50 cursor-pointer flex flex-col items-start justify-between border-accent shadow-2xl border-t rounded-xl bg-background px-5 py-5 text-left transition-all duration-200 hover:bg-accent/10 hover:shadow-md'
+                className='h-35 w-50 cursor-pointer flex flex-col items-start justify-between border-accent shadow-2xl border-t rounded-xl bg-background px-5 py-4 text-left transition-all duration-200 hover:bg-accent/10 hover:shadow-md'
             >
-                <h1 className='text-md font-medium truncate w-full'>
-                    {name}
-                </h1>
+                <div className="w-full flex flex-col gap-1">
+                    <h1 className='text-md font-medium w-full'>
+                        {name.slice(0, 100)}
+                    </h1>
+                    {(() => {
+                        const steps: { name: string; kind: 'trigger' | 'action' }[] = []
+                        if (trigger?.availbleTriggers?.name) {
+                            steps.push({ name: trigger.availbleTriggers.name, kind: 'trigger' })
+                        }
+                        if (actions && actions.length > 0) {
+                            actions.forEach((act) => {
+                                if (act.action?.name) {
+                                    steps.push({ name: act.action.name, kind: 'action' })
+                                }
+                            })
+                        }
+
+                        const maxIcons = 4
+                        const showPlus = steps.length > maxIcons
+                        const displayedSteps = showPlus ? steps.slice(0, maxIcons - 1) : steps
+
+                        if (steps.length === 0) {
+                            return <p className="text-[10px] text-muted-foreground/50 italic mt-2">No steps configured</p>
+                        }
+
+                        return (
+                            <div className="flex items-center -space-x-1.5 isolate mt-1.5">
+                                {displayedSteps.map((step, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="flex items-center justify-center h-6 w-6 rounded-full bg-secondary border border-background shadow-2xs shrink-0"
+                                        style={{ zIndex: steps.length - idx }}
+                                        title={`${step.kind === "trigger" ? "Trigger" : "Action"}: ${step.name}`}
+                                    >
+                                        <NodeIcon label={step.name} kind={step.kind} size={12} />
+                                    </div>
+                                ))}
+                                {showPlus && (
+                                    <div
+                                        className="flex items-center justify-center h-6 w-6 rounded-full bg-secondary border border-background text-[10px] font-semibold text-muted-foreground shadow-2xs shrink-0"
+                                        style={{ zIndex: 0 }}
+                                        title={`${steps.length - displayedSteps.length} more steps`}
+                                    >
+                                        +
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    })()}
+                </div>
                 <p className='text-xs text-muted-foreground'>{new Date(createdAt).toLocaleDateString()}</p>
             </motion.div>
 
@@ -113,23 +177,23 @@ function WorkFlowCard({id, name, createdAt}: {id: string, name: string, createdA
             {/* Animated Palette */}
             <AnimatePresence>
                 {isHovered && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, scale: 0.9, y: 10, x: "-50%" }}
                         animate={{ opacity: 1, scale: 1, y: 0, x: "-50%" }}
                         exit={{ opacity: 0, scale: 0.9, y: 10, x: "-50%" }}
-                        transition={{ 
-                            duration: 0.2, 
-                            ease: [0.23, 1, 0.32, 1] 
+                        transition={{
+                            duration: 0.2,
+                            ease: [0.23, 1, 0.32, 1]
                         }}
                         className={cn(
                             "absolute top-[calc(100%+0.5rem)] left-1/2",
                             "flex items-center gap-1 p-1 bg-background/80 backdrop-blur-md border border-accent rounded-full shadow-lg z-10"
                         )}
                     >
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 rounded-full hover:bg-accent/20 active:scale-95 transition-transform" 
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-accent/20 active:scale-95 transition-transform"
                             onClick={(e) => {
                                 e.stopPropagation()
                                 router.push(`/workflow/${id}`)
@@ -138,10 +202,10 @@ function WorkFlowCard({id, name, createdAt}: {id: string, name: string, createdA
                         >
                             <HugeiconsIcon icon={ArrowUpRight} size={16} strokeWidth={2} />
                         </Button>
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 rounded-full hover:bg-accent/20 active:scale-95 transition-transform" 
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-accent/20 active:scale-95 transition-transform"
                             onClick={(e) => {
                                 e.stopPropagation()
                                 setIsRenameDialogOpen(true)
@@ -150,10 +214,10 @@ function WorkFlowCard({id, name, createdAt}: {id: string, name: string, createdA
                         >
                             <HugeiconsIcon icon={PencilEdit01Icon} size={16} strokeWidth={2} />
                         </Button>
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive active:scale-95 transition-transform" 
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive active:scale-95 transition-transform"
                             onClick={handleDelete}
                             disabled={isLoading}
                             title="Delete"

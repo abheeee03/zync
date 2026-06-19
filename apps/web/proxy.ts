@@ -16,8 +16,7 @@ export async function proxy(request: NextRequest) {
     if (isPublicFileRequest ||
         pathname === "/" ||
         pathname.startsWith("/health") ||
-        pathname.startsWith("/signin") ||
-        pathname.startsWith("/signup") ||
+        pathname.startsWith("/login") ||
         pathname.startsWith("/api/auth") ||
         pathname.startsWith("/hook") ||
         pathname.startsWith("/api/health") ||
@@ -30,7 +29,7 @@ export async function proxy(request: NextRequest) {
         headers: request.headers,
     });
     if (!session) {
-        const signInUrl = new URL("/signin", request.url);
+        const signInUrl = new URL("/login", request.url);
         signInUrl.searchParams.set("callbackUrl", pathname);
         return applySecurityHeaders(NextResponse.redirect(signInUrl));
     }
