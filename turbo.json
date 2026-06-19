@@ -14,6 +14,17 @@
       "outputs": [
         ".next/**",
         "!.next/cache/**"
+      ],
+      "env": [
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "DATABASE_URL",
+        "REDIS_HOST_URL",
+        "NOTION_CLIENT_ID",
+        "NOTION_CLIENT_SECRET",
+        "OPENROUTER_API_KEY",
+        "PRIMARY_MODEL",
+        "FALLBACK_MODEL"
       ]
     },
     "generate": {

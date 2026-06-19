@@ -4,6 +4,8 @@ import { motion, Variants } from "framer-motion"
 import WorkFlowCard from "./workflow-card"
 import { sileo } from "sileo"
 import { Button } from "./ui/button"
+import { HugeiconsFreeIcons, HugeiconsIcon, PlusSignIcon } from "@hugeicons/core-free-icons"
+import { useRouter } from "next/navigation"
 
 interface WorkflowGridProps {
     workflows: {
@@ -46,8 +48,19 @@ const item: Variants = {
 }
 
 export default function WorkflowGrid({ workflows }: WorkflowGridProps) {
+    const router = useRouter();
     if (workflows.length === 0) {
-        return <></>
+        return <div className="flex items-center justify-center flex-col mt-10">
+            <h1 className="text-center font-medium text-lg mb-10">Your Workflows</h1>
+            looks like you dont have any workflow.
+            <Button
+                onClick={() => {
+                    router.push('/workflow')
+                }}
+                className="mt-5">
+                Create Blank
+            </Button>
+        </div>
     }
 
     return (
