@@ -7,7 +7,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "seed": "tsx --env-file=.env prisma/seed.ts"
+    "seed": "tsx --env-file=.env prisma/seed.ts",
+    "generate": "prisma generate"
   },
   "author": "",
   "license": "ISC",
