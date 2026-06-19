@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import WorkflowGrid from "@/components/workflow-grid"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { PlusSignIcon, SparklesIcon, AlertCircleIcon } from "@hugeicons/core-free-icons"
+import { PlusSignIcon, SparklesIcon, AlertCircleIcon, ArrowUp02Icon } from "@hugeicons/core-free-icons"
 import Loader from "@/components/loader"
 import axios from "axios"
 import { Input } from "@/components/ui/input"
@@ -17,11 +17,24 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
+import { cn } from "@/lib/utils"
+import { motion, AnimatePresence } from "framer-motion"
 
 type AgentState =
   | { status: "idle" }
   | { status: "loading" }
-  | { status: "error"; message: string }
+  | { status: "error"; message: string; isOutOfScope?: boolean; reason?: string }
+
+const messages = [
+  "let's save you some time, shall we?",
+  "got an idea? let's make it real.",
+  "tell me the dream. i'll build the system.",
+  "what problem are we solving today?",
+  "got a wild idea? i'm listening.",
+  "say the word. let's automate it.",
+  "let me cook.",
+  "what should run on autopilot next?"
+]
 
 export default function Home() {
   const router = useRouter()
@@ -29,6 +42,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [prompt, setPrompt] = useState("")
   const [agentState, setAgentState] = useState<AgentState>({ status: "idle" })
+  const [isFocused, setIsFocused] = useState(false)
+  const [welcomeMessage, setWelcomeMessage] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -44,6 +59,7 @@ export default function Home() {
     }
 
     fetchWorkflows()
+    setWelcomeMessage(messages[Math.floor(Math.random() * messages.length)])
   }, [])
 
   const handleAgentSubmit = async () => {
@@ -61,15 +77,18 @@ export default function Home() {
       } else {
         setAgentState({
           status: "error",
-          message: "Agent did not return a workflow. Please try again.",
+          message: "This workflow can't be created. Contact support for more.",
+          isOutOfScope: true,
         })
       }
     } catch (error: any) {
+      const isOutOfScope = error?.response?.data?.code === "OUT_OF_SCOPE"
+      const reason = error?.response?.data?.reason
       const message =
         error?.response?.data?.error ||
         error?.message ||
         "Something went wrong. Please try again."
-      setAgentState({ status: "error", message })
+      setAgentState({ status: "error", message, isOutOfScope, reason })
     }
   }
 
@@ -91,32 +110,80 @@ export default function Home() {
   const isDialogOpen =
     agentState.status === "loading" || agentState.status === "error"
 
+  const showButton =
+    isFocused || prompt.trim().length > 0 || agentState.status === "loading"
+
   return (
-    <div className="">
+    <div className="min-h-screen w-full">
       <div className="h-full w-full px-6">
         <div className="h-1/2 w-full flex flex-col items-center justify-center gap-10">
-          <h1 className="text-2xl">What's in your mind abhee?</h1>
-          <div className="flex items-center justify-center gap-4">
-            <Input
-              ref={inputRef}
-              className="w-3xl"
-              placeholder="create a github issue to notion workflow."
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={agentState.status === "loading"}
-            />
-            <Button
-              onClick={handleAgentSubmit}
-              disabled={agentState.status === "loading" || !prompt.trim()}
-              className="flex gap-2 items-center"
-            >
-              <HugeiconsIcon icon={SparklesIcon} size={16} />
-              Generate
-            </Button>
+          <div className="h-8 flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              {welcomeMessage && (
+                <motion.h1
+                  key={welcomeMessage}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.4,
+                    ease: [0.23, 1, 0.32, 1],
+                  }}
+                  className="text-2xl"
+                >
+                  {welcomeMessage}
+                </motion.h1>
+              )}
+            </AnimatePresence>
           </div>
+          <motion.div layout className="relative flex items-center justify-center gap-4">
+            <motion.div layout className="bg-sidebar shadow-xl border-t rounded-xl px-2 py-2">
+              <Input
+                ref={inputRef}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                className="w-xl border-none active:border-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-input bg-transparent!"
+                placeholder="create a github issue to notion workflow."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={agentState.status === "loading"}
+              />
+            </motion.div>
+            <AnimatePresence mode="popLayout">
+              {showButton && (
+                <motion.button
+                  key="send-button"
+                  layout
+                  initial={{ opacity: 0, x: -16, scale: 0.95 }}
+                  animate={{
+                    opacity: 1,
+                    x: 0,
+                    scale: 1,
+                    transition: { duration: 0.2, ease: [0.23, 1, 0.32, 1] }
+                  }}
+                  exit={{
+                    opacity: 0,
+                    x: -16,
+                    scale: 0.95,
+                    transition: { duration: 0.15, ease: [0.23, 1, 0.32, 1] }
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleAgentSubmit}
+                  disabled={agentState.status === "loading" || !prompt.trim()}
+                  className={
+                    cn(
+                      "shadow-sm border-t rounded-xl p-1",
+                      prompt.length != 0 && "cursor-pointer rounded-lg bg-linear-to-b from-blue-500 to-blue-700 font-medium text-white ring-1 ring-white/20 rizng-offset-1 ring-offset-blue-500 transition-transform duration-150 ring-inset active:scale-98s",
+                      prompt.length == 0 && "cursor-not-allowed"
+                    )
+                  }
+                >
+                  <HugeiconsIcon icon={ArrowUp02Icon} />
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </motion.div>
         </div>
-
         <WorkflowGrid workflows={workflows} />
       </div>
       <Dialog
@@ -165,24 +232,39 @@ export default function Home() {
             <>
               <DialogHeader>
                 <DialogTitle className="text-center flex items-center justify-center gap-2">
-                  <HugeiconsIcon
-                    icon={AlertCircleIcon}
-                    size={18}
-                    className="text-destructive"
-                  />
-                  Something went wrong
+                  {agentState.isOutOfScope ? "Workflow Out of Scope" : "Something went wrong"}
                 </DialogTitle>
-                <DialogDescription className="text-center text-sm text-muted-foreground mt-1">
-                  {agentState.message}
+                <DialogDescription className="text-center text-sm text-muted-foreground mt-1 flex flex-col gap-2">
+                  This workflow cant be created.
                 </DialogDescription>
               </DialogHeader>
-              <div className="flex justify-center pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setAgentState({ status: "idle" })}
-                >
-                  Try again
-                </Button>
+              <div className="flex justify-center gap-2 pt-2">
+                {agentState.isOutOfScope ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() => setAgentState({ status: "idle" })}
+                      className="cursor-pointer"
+                    >
+                      Try another search
+                    </Button>
+                    <Button
+                      asChild
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm cursor-pointer"
+                    >
+                      <Link href={`https://zync.abhee.dev/help`}>
+                        Contact Support
+                      </Link>
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => setAgentState({ status: "idle" })}
+                  >
+                    Try again
+                  </Button>
+                )}
               </div>
             </>
           )}

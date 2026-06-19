@@ -34,6 +34,29 @@ export async function POST(req: NextRequest) {
         .join("\n");
 
     let createdWorkflowId: string | null = null;
+    let isOutOfScope = false;
+    let outOfScopeReason = "";
+
+    const reportOutOfScopeTool = tool({
+        name: "report_out_of_scope",
+        description:
+            "Call this tool if the user's request is out of scope and cannot be created using the available triggers and actions. For example, if it requires integrations or steps that Zync does not currently support.",
+        inputSchema: z.object({
+            reason: z
+                .string()
+                .describe(
+                    "A brief, clear explanation of why this request is out of scope (e.g. 'Zync does not currently support Discord integrations')."
+                ),
+        }),
+        execute: async ({ reason }) => {
+            isOutOfScope = true;
+            outOfScopeReason = reason;
+            return {
+                success: true,
+                message: "Out of scope reported successfully.",
+            };
+        },
+    });
 
     const createWorkflowTool = tool({
         name: "create_workflow",
@@ -131,6 +154,7 @@ ${actionsContext}
 4. Call the \`create_workflow\` tool EXACTLY ONCE with your selections.
 5. Use the exact ids from the lists above — do not make up new ids.
 6. Give the workflow a concise, descriptive name.
+7. If the request is out of scope and cannot be achieved using the available triggers and actions, call the \`report_out_of_scope\` tool to explain what is missing. Do not call \`create_workflow\` if the request is unsupported.
 
 Trigger meanings:
 - "manual": workflow is triggered manually by the user
@@ -152,7 +176,7 @@ Action meanings:
         return openrouter.callModel({
             model,
             input: prompt,
-            tools: [createWorkflowTool],
+            tools: [createWorkflowTool, reportOutOfScopeTool],
             instructions: systemPrompt,
         });
     };
@@ -168,15 +192,28 @@ Action meanings:
                 primaryError
             );
             createdWorkflowId = null;
+            isOutOfScope = false;
+            outOfScopeReason = "";
             result = await tryCallModel(FALLBACK_MODEL!);
             await result.getText();
+        }
+
+        if (isOutOfScope) {
+            return NextResponse.json(
+                {
+                    error: "This workflow can't be created. Contact support for more.",
+                    reason: outOfScopeReason,
+                    code: "OUT_OF_SCOPE",
+                },
+                { status: 422 }
+            );
         }
 
         if (!createdWorkflowId) {
             return NextResponse.json(
                 {
-                    error:
-                        "The agent could not determine an appropriate workflow for your request. Please try rephrasing.",
+                    error: "This workflow can't be created. Contact support for more.",
+                    code: "OUT_OF_SCOPE",
                 },
                 { status: 422 }
             );
@@ -187,6 +224,6 @@ Action meanings:
         console.error("Agent error:", error);
         const message =
             error instanceof Error ? error.message : "An unexpected error occurred";
-        return NextResponse.json({ error: message }, { status: 500 });
+        return NextResponse.json({ error: "Internal Error" }, { status: 500 });
     }
 }

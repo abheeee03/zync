@@ -37,33 +37,28 @@ const item: Variants = {
 
 export default function WorkflowGrid({ workflows }: WorkflowGridProps) {
     if (workflows.length === 0) {
-        return <div
-            className="h-96 w-full flex flex-col items-center justify-center gap-6">
-            <h1 className="text-xl mt-10">
-                Looks like you don't have any workflows
-            </h1>
-            <Button
-                variant={"outline"}
-            >Create New Workflow</Button>
-        </div>
+        return <></>
     }
 
     return (
-        <motion.div
-            variants={container}
-            initial="hidden"
-            animate="show"
-            className="flex flex-wrap mt-5 gap-5"
-        >
-            {workflows.map((workflow) => (
-                <motion.div key={workflow.id} variants={item}>
-                    <WorkFlowCard
-                        id={workflow.id}
-                        name={workflow.name || "Untitled"}
-                        createdAt={workflow.createdAt}
-                    />
-                </motion.div>
-            ))}
-        </motion.div>
+        <div className="flex items-center justify-center flex-col mt-10">
+            <h1 className="text-center font-medium text-lg">Your Workflows</h1>
+            <motion.div
+                variants={container}
+                initial="hidden"
+                animate="show"
+                className="flex flex-wrap mt-5 gap-5"
+            >
+                {workflows.map((workflow) => (
+                    <motion.div key={workflow.id} variants={item}>
+                        <WorkFlowCard
+                            id={workflow.id}
+                            name={workflow.name || "Untitled"}
+                            createdAt={workflow.createdAt}
+                        />
+                    </motion.div>
+                ))}
+            </motion.div>
+        </div>
     )
 }

@@ -42,7 +42,7 @@ const data = {
   navSecondary: [
     {
       title: "Help",
-      url: "/help",
+      url: "https://zync.abhee.dev/help",
       icon: (
         <HugeiconsIcon icon={HelpCircleIcon} strokeWidth={2} />
       ),
