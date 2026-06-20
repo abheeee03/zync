@@ -114,7 +114,7 @@ function WorkFlowCard({ id, name, createdAt, trigger, actions }: WorkFlowCardPro
                     router.push(`/workflow/${id}`)
                 }}
                 whileTap={{ scale: 0.98 }}
-                className='h-35 w-50 cursor-pointer flex flex-col items-start justify-between border-accent shadow-2xl border-t rounded-xl bg-background px-5 py-4 text-left transition-all duration-200 hover:bg-accent/10 hover:shadow-md'
+                className='h-32 w-full sm:h-35 sm:w-50 cursor-pointer flex flex-col items-start justify-between border-accent shadow-2xl border-t rounded-xl bg-background px-5 py-4 text-left transition-all duration-200 hover:bg-accent/10 hover:shadow-md'
             >
                 <div className="w-full flex flex-col gap-1">
                     <h1 className='text-md font-medium w-full'>

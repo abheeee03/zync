@@ -110,14 +110,13 @@ export default function Home() {
   const isDialogOpen =
     agentState.status === "loading" || agentState.status === "error"
 
-  const showButton =
-    isFocused || prompt.trim().length > 0 || agentState.status === "loading"
+  // Button is always visible, embedded in input container
 
   return (
     <div className="min-h-screen w-full">
-      <div className="h-full w-full px-6">
-        <div className="h-1/2 w-full flex flex-col items-center justify-center gap-10">
-          <div className="h-8 flex items-center justify-center">
+      <div className="h-full w-full px-4 sm:px-6">
+        <div className="h-1/2 w-full flex flex-col items-center justify-center gap-8 sm:gap-10">
+          <div className="h-8 flex items-center justify-center px-4">
             <AnimatePresence mode="wait">
               {welcomeMessage && (
                 <motion.h1
@@ -128,61 +127,46 @@ export default function Home() {
                     duration: 0.4,
                     ease: [0.23, 1, 0.32, 1],
                   }}
-                  className="text-2xl"
+                  className="text-lg sm:text-2xl text-center"
                 >
                   {welcomeMessage}
                 </motion.h1>
               )}
             </AnimatePresence>
           </div>
-          <motion.div layout className="relative flex items-center justify-center gap-4">
-            <motion.div layout className="bg-sidebar shadow-xl border-t rounded-xl px-2 py-2">
+          <div className="w-full max-w-xl px-2">
+            <motion.div
+              layout
+              className="bg-sidebar shadow-xl border-t rounded-xl px-2 py-2 flex items-center gap-2"
+            >
               <Input
                 ref={inputRef}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
-                className="w-xl border-none active:border-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-input bg-transparent!"
+                className="flex-1 min-w-0 border-none active:border-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-input bg-transparent!"
                 placeholder="create a github issue to notion workflow."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={agentState.status === "loading"}
               />
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={handleAgentSubmit}
+                disabled={agentState.status === "loading" || !prompt.trim()}
+                className={
+                  cn(
+                    "shrink-0 shadow-sm border-t rounded-xl p-1 transition-all duration-150",
+                    prompt.length !== 0
+                      ? "cursor-pointer rounded-lg bg-linear-to-b from-blue-500 to-blue-700 font-medium text-white ring-1 ring-white/20 ring-offset-1 ring-offset-blue-500 ring-inset"
+                      : "cursor-not-allowed opacity-40"
+                  )
+                }
+              >
+                <HugeiconsIcon icon={ArrowUp02Icon} />
+              </motion.button>
             </motion.div>
-            <AnimatePresence mode="popLayout">
-              {showButton && (
-                <motion.button
-                  key="send-button"
-                  layout
-                  initial={{ opacity: 0, x: -16, scale: 0.95 }}
-                  animate={{
-                    opacity: 1,
-                    x: 0,
-                    scale: 1,
-                    transition: { duration: 0.2, ease: [0.23, 1, 0.32, 1] }
-                  }}
-                  exit={{
-                    opacity: 0,
-                    x: -16,
-                    scale: 0.95,
-                    transition: { duration: 0.15, ease: [0.23, 1, 0.32, 1] }
-                  }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={handleAgentSubmit}
-                  disabled={agentState.status === "loading" || !prompt.trim()}
-                  className={
-                    cn(
-                      "shadow-sm border-t rounded-xl p-1",
-                      prompt.length != 0 && "cursor-pointer rounded-lg bg-linear-to-b from-blue-500 to-blue-700 font-medium text-white ring-1 ring-white/20 rizng-offset-1 ring-offset-blue-500 transition-transform duration-150 ring-inset active:scale-98s",
-                      prompt.length == 0 && "cursor-not-allowed"
-                    )
-                  }
-                >
-                  <HugeiconsIcon icon={ArrowUp02Icon} />
-                </motion.button>
-              )}
-            </AnimatePresence>
-          </motion.div>
+          </div>
         </div>
         <WorkflowGrid workflows={workflows} />
       </div>

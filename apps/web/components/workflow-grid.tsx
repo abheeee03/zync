@@ -50,7 +50,7 @@ const item: Variants = {
 export default function WorkflowGrid({ workflows }: WorkflowGridProps) {
     const router = useRouter();
     if (workflows.length === 0) {
-        return <div className="flex items-center justify-center flex-col mt-10">
+        return <div className="flex items-center justify-center flex-col mt-10 px-4">
             <h1 className="text-center font-medium text-lg mb-10">Your Workflows</h1>
             looks like you dont have any workflow.
             <Button
@@ -64,13 +64,13 @@ export default function WorkflowGrid({ workflows }: WorkflowGridProps) {
     }
 
     return (
-        <div className="flex items-center justify-center flex-col mt-10">
+        <div className="flex items-center justify-center flex-col mt-10 px-4">
             <h1 className="text-center font-medium text-lg">Your Workflows</h1>
             <motion.div
                 variants={container}
                 initial="hidden"
                 animate="show"
-                className="flex flex-wrap mt-5 gap-5"
+                className="flex flex-wrap justify-center mt-5 gap-5"
             >
                 {workflows.map((workflow) => (
                     <motion.div key={workflow.id} variants={item}>
