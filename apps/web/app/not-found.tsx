@@ -21,7 +21,7 @@ function NotFound() {
             </button>
             <div className='h-screen w-full flex flex-col items-center justify-center gap-4'>
                 <h1 className='text-5xl'>Page not Found.</h1>
-                <p className='text-xl max-w-sm text-accent text-center'>Looks like you've lost, The page you're looking for doesn't exist.</p>
+                <p className='text-xl max-w-sm dark:text-accent text-center'>Looks like you've lost, The page you're looking for doesn't exist.</p>
                 <Button
                     onClick={() => {
                         router.push('/home')
