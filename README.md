@@ -1,8 +1,4 @@
 <div>
-
-<br />
-<br />
-
 <h1>Zync</h1>
 
 <p>Visual workflow automation that connects your favorite tools GitHub, Notion, Google, and AI without writing a single line of glue code.</p>
@@ -217,15 +213,6 @@ DATABASE_URL="postgresql://user:password@localhost:5432/zync?sslmode=require"
 ---
 
 ## 🧱 Database Schema (Overview)
-
-```
-User ──< Workflow ──< Trigger
-                  ──< Action
-                  ──< WorkflowRun
-     ──< Credential
-     ──< Session / Account
-```
-
 | Model | Description |
 |---|---|
 | `User` | Authenticated user (via Google/GitHub) |
