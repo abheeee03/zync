@@ -110,7 +110,8 @@ export default function Home() {
   const isDialogOpen =
     agentState.status === "loading" || agentState.status === "error"
 
-  // Button is always visible, embedded in input container
+  const showButton =
+    isFocused || prompt.trim().length > 0 || agentState.status === "loading"
 
   return (
     <div className="min-h-screen w-full">
@@ -134,7 +135,9 @@ export default function Home() {
               )}
             </AnimatePresence>
           </div>
-          <div className="w-full max-w-xl px-2">
+
+          {/* Mobile layout: input + button always visible inside pill */}
+          <div className="sm:hidden w-full px-2">
             <motion.div
               layout
               className="bg-sidebar shadow-xl border-t rounded-xl px-2 py-2 flex items-center gap-2"
@@ -167,6 +170,56 @@ export default function Home() {
               </motion.button>
             </motion.div>
           </div>
+
+          {/* Desktop layout: original animated button outside the pill */}
+          <motion.div layout className="hidden sm:flex relative items-center justify-center gap-4">
+            <motion.div layout className="bg-sidebar shadow-xl border-t rounded-xl px-2 py-2">
+              <Input
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                className="md:w-xl w-lg border-none active:border-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-input bg-transparent!"
+                placeholder="create a github issue to notion workflow."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={agentState.status === "loading"}
+              />
+            </motion.div>
+            <AnimatePresence mode="popLayout">
+              {showButton && (
+                <motion.button
+                  key="send-button"
+                  layout
+                  initial={{ opacity: 0, x: -16, scale: 0.95 }}
+                  animate={{
+                    opacity: 1,
+                    x: 0,
+                    scale: 1,
+                    transition: { duration: 0.2, ease: [0.23, 1, 0.32, 1] }
+                  }}
+                  exit={{
+                    opacity: 0,
+                    x: -16,
+                    scale: 0.95,
+                    transition: { duration: 0.15, ease: [0.23, 1, 0.32, 1] }
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleAgentSubmit}
+                  disabled={agentState.status === "loading" || !prompt.trim()}
+                  className={
+                    cn(
+                      "shadow-sm border-t rounded-xl p-1",
+                      prompt.length != 0 && "cursor-pointer rounded-lg bg-linear-to-b from-blue-500 to-blue-700 font-medium text-white ring-1 ring-white/20 ring-offset-1 ring-offset-blue-500 transition-transform duration-150 ring-inset",
+                      prompt.length == 0 && "cursor-not-allowed"
+                    )
+                  }
+                >
+                  <HugeiconsIcon icon={ArrowUp02Icon} />
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
         </div>
         <WorkflowGrid workflows={workflows} />
       </div>

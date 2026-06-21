@@ -15,6 +15,7 @@ import { Logout01Icon } from "@hugeicons/core-free-icons"
 import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { sileo } from "sileo"
 
 export function NavUser({
   user,
@@ -29,14 +30,30 @@ export function NavUser({
 
   if (!user) return null
 
-  const handleLogout = async () => {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.push("/login")
+  const handleLogout = () => {
+    const signOutPromise = new Promise<void>((resolve, reject) => {
+      authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => resolve(),
+          onError: (ctx) => reject(ctx.error),
         },
-      },
+      })
     })
+
+    sileo.promise(signOutPromise, {
+      loading: { title: "Signing out…" },
+      success: {
+        title: "Signed out",
+        description: (
+          <span className="text-green-400/70 font-medium!">
+            See you next time, {user.name.split(" ")[0]}!
+          </span>
+        ),
+      },
+      error: { title: "Sign out failed" },
+    })
+
+    signOutPromise.then(() => router.push("/login")).catch(() => {})
   }
 
   return (

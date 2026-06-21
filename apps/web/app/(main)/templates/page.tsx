@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import axios from "axios"
+import { sileo } from "sileo"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   ArrowRight01Icon,
@@ -200,6 +201,18 @@ function TemplateCard({ template }: { template: Template }) {
         actionNames: template.actionNames,
       })
       setImportState({ status: "success" })
+      sileo.success({
+        title: "Template imported!",
+        description: (
+          <span className="text-green-400/70 font-medium!">
+            Redirecting you to the workflow editor…
+          </span>
+        ),
+        autopilot: {
+          expand: 500,
+          collapse: 3000,
+        },
+      })
       setTimeout(() => {
         router.push(`/workflow/${res.data.workflowId}`)
       }, 600)
@@ -207,6 +220,16 @@ function TemplateCard({ template }: { template: Template }) {
       const message =
         err?.response?.data?.error ?? err?.message ?? "Failed to import template"
       setImportState({ status: "error", message })
+      sileo.error({
+        title: "Import failed",
+        description: (
+          <span className="font-medium!">{message.slice(0, 80)}</span>
+        ),
+        autopilot: {
+          expand: 400,
+          collapse: 4000,
+        },
+      })
       setTimeout(() => setImportState({ status: "idle" }), 3000)
     }
   }
