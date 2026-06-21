@@ -1,159 +1,259 @@
-# Turborepo starter
+<div>
 
-This Turborepo starter is maintained by the Turborepo core team.
+<br />
+<br />
 
-## Using this example
+<h1>Zync</h1>
 
-Run the following command:
+<p>Visual workflow automation that connects your favorite tools GitHub, Notion, Google, and AI without writing a single line of glue code.</p>
 
-```sh
-npx create-turbo@latest
+<br />
+
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_v4-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![BullMQ](https://img.shields.io/badge/BullMQ-FF6B6B?style=for-the-badge&logo=bull&logoColor=white)
+
+<br />
+
+> [NOTE]
+> 🚧 **This is a personal side project**, built for fun and learning. Expect rough edges, experimental features, and the occasional late-night commit message. PRs & issues are welcome!
+
+</div>
+
+---
+
+## 📖 What is Zync?
+
+**Zync** is a self-hosted, visual workflow automation platform. Think zapier or n8n.
+You build workflows on a **drag-and-drop canvas** (powered by React Flow), connect nodes representing triggers and actions, and Zync handles the execution asynchronously via a dedicated background worker.
+
+```
+[Webhook Trigger] ──▶ [AI Transform] ──▶ [Create Notion Page] ──▶ [Post GitHub Issue]
 ```
 
-## What's inside?
+---
 
-This Turborepo includes the following packages/apps:
+## 🏗️ Project Structure
 
-### Apps and Packages
+This is a **pnpm monorepo** powered by [Turborepo](https://turborepo.dev).
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```
+zync/
+├── apps/
+│   ├── web/          # Next.js 16 frontend + API routes
+│   └── worker/       # BullMQ background job processor
+│
+└── packages/
+    ├── prisma/        # Shared Prisma schema & generated client
+    ├── shared/        # Shared utilities (queue, types, helpers)
+    ├── eslint-config/ # Shared ESLint configuration
+    └── typescript-config/ # Shared tsconfig bases
 ```
 
-Without global `turbo`, use your package manager:
+### `apps/web` — The Next.js App
+The main user-facing application. Handles auth, the workflow canvas editor, credential management, and all API routes.
+
+### `apps/worker` — The Background Worker
+A long-running Node.js process that consumes jobs from a Redis queue (via BullMQ) and executes workflow runs step-by-step. Runs independently of the web server.
+
+---
+
+## 🧰 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Framework** | [Next.js 16](https://nextjs.org) (App Router) |
+| **Language** | TypeScript 5 |
+| **UI** | React 19, Tailwind CSS v4, shadcn/ui, Radix UI |
+| **Animations** | Framer Motion, `tw-animate-css` |
+| **Canvas** | [React Flow (`@xyflow/react`)](https://reactflow.dev) |
+| **Auth** | [better-auth](https://better-auth.com) (Google & GitHub OAuth) |
+| **Database** | PostgreSQL via [Prisma ORM](https://prisma.io) |
+| **Queue** | [Redis](https://redis.io) + [BullMQ](https://bullmq.io) |
+| **Icons** | Hugeicons |
+| **Toasts** | [sileo](https://github.com/abheeee03/sileo) |
+| **Validation** | Zod |
+| **AI** | OpenRouter (via `@openrouter/agent`) |
+| **Package Manager** | pnpm 9 |
+| **Monorepo** | Turborepo |
+
+---
+
+## ✨ Features
+
+- 🎨 **Visual Workflow Editor** — Drag-and-drop canvas to build automations
+- ⚡ **Async Execution** — Workflows run in a dedicated worker process, never blocking the UI
+- 🔗 **Integrations** — GitHub, Notion, Google (OAuth), Webhooks, and AI actions
+- 🤖 **AI Actions** — Run prompts through OpenRouter and use the output as data
+- 🔒 **Auth** — Secure OAuth login via Google & GitHub
+- 🗝️ **Credential Vault** — Store & reuse OAuth tokens across workflows
+- 📊 **Run History** — Track every workflow execution with status & step logging
+- 🧩 **Modular Actions** — GitHub, Notion, Delay, Webhook, Transform, and AI nodes
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org) `>= 18`
+- [pnpm](https://pnpm.io) `9.x`  — `npm install -g pnpm@9`
+- A running **PostgreSQL** database
+- A running **Redis** instance (or an Upstash Redis URL)
+
+### 1. Clone the repository
 
 ```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+git clone https://github.com/abheeee03/zync.git
+cd zync
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+### 2. Install dependencies
 
 ```sh
-turbo build --filter=docs
+pnpm install
 ```
 
-Without global `turbo`:
+### 3. Set up environment variables
+
+Copy the example files and fill in your credentials:
 
 ```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+cp apps/web/.env.example apps/web/.env
+cp apps/worker/.env.example apps/worker/.env
+cp packages/prisma/.env.example packages/prisma/.env
 ```
 
-### Develop
+> See the [Environment Variables](#-environment-variables) section below for what each variable does.
 
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+### 4. Run database migrations
 
 ```sh
-cd my-turborepo
-turbo dev
+cd packages/prisma
+pnpm prisma migrate dev
+pnpm prisma db seed   # optional: seeds available triggers & actions
 ```
 
-Without global `turbo`, use your package manager:
+### 5. Start development servers
+
+From the repo root, start everything at once:
 
 ```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
+pnpm dev
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+Or run apps individually:
 
 ```sh
-turbo dev --filter=web
+# Web app only
+pnpm dev --filter=web
+
+# Worker only
+pnpm dev --filter=worker
 ```
 
-Without global `turbo`:
+The web app will be available at **[http://localhost:3000](http://localhost:3000)**.
 
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+---
+
+## 🔐 Environment Variables
+
+### `apps/web/.env`
+
+```env
+# ── Auth ──────────────────────────────────────────────────────────────────────
+BETTER_AUTH_SECRET="your-random-secret-here"
+BETTER_AUTH_URL=http://localhost:3000
+
+# ── Database ──────────────────────────────────────────────────────────────────
+DATABASE_URL="postgresql://user:password@localhost:5432/zync?sslmode=require"
+
+# ── Redis / Queue ─────────────────────────────────────────────────────────────
+REDIS_HOST_URL="rediss://default:password@your-redis-host:6379"
+
+# ── OAuth Providers ───────────────────────────────────────────────────────────
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+GITHUB_CLIENT_ID="your-github-client-id"
+GITHUB_CLIENT_SECRET="your-github-client-secret"
+
+# ── Notion OAuth ──────────────────────────────────────────────────────────────
+NOTION_CLIENT_ID="your-notion-client-id"
+NOTION_CLIENT_SECRET="your-notion-client-secret"
+
+# ── AI (OpenRouter) ───────────────────────────────────────────────────────────
+OPENROUTER_API_KEY="sk-or-v1-..."
+PRIMARY_MODEL="openai/gpt-4o-mini"
+FALLBACK_MODEL="meta-llama/llama-3.3-70b-instruct:free"
 ```
 
-### Remote Caching
+### `apps/worker/.env`
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+```env
+# ── Database ──────────────────────────────────────────────────────────────────
+DATABASE_URL="postgresql://user:password@localhost:5432/zync?sslmode=require"
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+# ── Redis / Queue ─────────────────────────────────────────────────────────────
+REDIS_HOST_URL="rediss://default:password@your-redis-host:6379"
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+# ── OAuth Providers (for re-authorization) ────────────────────────────────────
+NOTION_CLIENT_ID="your-notion-client-id"
+NOTION_CLIENT_SECRET="your-notion-client-secret"
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
+GITHUB_CLIENT_ID="your-github-client-id"
+GITHUB_CLIENT_SECRET="your-github-client-secret"
 ```
 
-Without global `turbo`, use your package manager:
+### `packages/prisma/.env`
 
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
+```env
+# ── Database ──────────────────────────────────────────────────────────────────
+DATABASE_URL="postgresql://user:password@localhost:5432/zync?sslmode=require"
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+---
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+## 🧱 Database Schema (Overview)
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
+```
+User ──< Workflow ──< Trigger
+                  ──< Action
+                  ──< WorkflowRun
+     ──< Credential
+     ──< Session / Account
 ```
 
-Without global `turbo`:
+| Model | Description |
+|---|---|
+| `User` | Authenticated user (via Google/GitHub) |
+| `Workflows` | A user's automation workflow |
+| `Trigger` | The event that starts a workflow (e.g., webhook) |
+| `Action` | An ordered step in a workflow |
+| `WorkflowRun` | A single execution instance of a workflow |
+| `Credential` | Stored OAuth tokens for third-party services |
+| `AvailableTriggers` | Registry of supported trigger types |
+| `AvailableActions` | Registry of supported action types |
 
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
+---
 
-## Useful Links
+## 📜 Scripts
 
-Learn more about the power of Turborepo:
+Run these from the **repo root**:
 
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+| Command | Description |
+|---|---|
+| `pnpm dev` | Start all apps in development mode |
+| `pnpm build` | Build all apps and packages |
+| `pnpm lint` | Lint all apps and packages |
+| `pnpm format` | Format all TypeScript and Markdown files with Prettier |
+| `pnpm check-types` | Type-check all packages |
+
+---
+
+## 🤝 Contributing
+
+This is a side project, so there's no formal contribution process. but if you want to help out, Send yours PRs
+</div>
