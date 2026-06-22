@@ -1,9 +1,9 @@
-<div>
 <h1>Zync</h1>
 
 <p>Visual workflow automation that connects your favorite tools GitHub, Notion, Google, and AI without writing a single line of glue code.</p>
+<img width="1200" height="630" alt="ogimg" src="https://github.com/user-attachments/assets/b2d26115-ff4b-42d2-b0bc-19b7b8d11982" />
 
-<br />
+<br /> <br />
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
@@ -243,4 +243,3 @@ Run these from the **repo root**:
 ## 🤝 Contributing
 
 This is a side project, so there's no formal contribution process. but if you want to help out, Send yours PRs
-</div>
