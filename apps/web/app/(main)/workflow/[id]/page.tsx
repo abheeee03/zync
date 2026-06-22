@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
+import { memo, useCallback, useEffect, useMemo, useState, type MouseEvent, type ReactNode } from "react";
 import { useParams } from "next/navigation";
 import { useTheme } from "next-themes";
 import axios from "axios";
@@ -35,11 +35,16 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
     Add01Icon,
     AlertCircleIcon,
+    AiBrain01Icon,
     CloudIcon,
     Delete01Icon,
+    FilterIcon,
+    Globe02Icon,
     Loading03Icon,
     Tick02Icon,
+    WebhookIcon,
 } from "@hugeicons/core-free-icons";
+import { GithubIcon, NotionIcon } from "@/components/icons";
 import { NodeIcon } from "@/components/workflow/node-icon";
 import { cn } from "@/lib/utils";
 import type { AvailableActions, AvailableTriggers } from "@repo/shared/types";
@@ -285,6 +290,7 @@ function WorkflowPage() {
     const [loadError, setLoadError] = useState<string | null>(null);
     const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
     const [searchTerm, setSearchTerm] = useState("");
+    const [integrationFilter, setIntegrationFilter] = useState<string>("all");
     const [isLibraryOpen, setIsLibraryOpen] = useState(false);
     const [isActive, setIsActive] = useState(false);
 
@@ -307,9 +313,75 @@ function WorkflowPage() {
     const isTriggerTab = activeTab === "triggers";
     const activeItems = isTriggerTab ? availableTriggers : availableActions;
     const normalizedSearch = searchTerm.trim().toLowerCase();
-    const filteredItems = normalizedSearch.length
-        ? activeItems.filter((item) => item.name.toLowerCase().includes(normalizedSearch))
-        : activeItems;
+
+    type IntegrationDef = {
+        id: string;
+        label: string;
+        icon: ReactNode;
+        matches: (name: string) => boolean;
+    };
+
+    const INTEGRATIONS: IntegrationDef[] = useMemo(() => [
+        {
+            id: "all",
+            label: "All",
+            icon: <HugeiconsIcon icon={Globe02Icon} size={12} />,
+            matches: () => true,
+        },
+        {
+            id: "github",
+            label: "GitHub",
+            icon: <GithubIcon width={12} height={12} />,
+            matches: (name) =>
+                name.includes("github") ||
+                name.includes("push") ||
+                name.includes("pull_request") ||
+                name.includes("issue_opened") ||
+                name.includes("release_published") ||
+                name.includes("create_issue") ||
+                name.includes("create_comment") ||
+                name.includes("create_pr") ||
+                name.includes("create_branch") ||
+                name.includes("get_repo"),
+        },
+        {
+            id: "notion",
+            label: "Notion",
+            icon: <NotionIcon width={12} height={12} />,
+            matches: (name) => name.includes("notion"),
+        },
+        {
+            id: "ai",
+            label: "AI",
+            icon: <HugeiconsIcon icon={AiBrain01Icon} size={12} />,
+            matches: (name) => name.includes("ai"),
+        },
+        {
+            id: "core",
+            label: "Core",
+            icon: <HugeiconsIcon icon={WebhookIcon} size={12} />,
+            matches: (name) =>
+                name.includes("webhook") ||
+                name.includes("schedule") ||
+                name.includes("manual") ||
+                name.includes("delay") ||
+                name.includes("transform"),
+        },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    ], []);
+
+    const activeIntegration = INTEGRATIONS.find((ig) => ig.id === integrationFilter) ?? INTEGRATIONS[0]!;
+
+    const filteredItems = useMemo(() => {
+        let items = activeItems;
+        if (integrationFilter !== "all") {
+            items = items.filter((item) => activeIntegration.matches(item.name.toLowerCase()));
+        }
+        if (normalizedSearch.length) {
+            items = items.filter((item) => item.name.toLowerCase().includes(normalizedSearch));
+        }
+        return items;
+    }, [activeItems, integrationFilter, normalizedSearch, activeIntegration]);
 
     const selectedNodeCatalogName = useMemo(() => {
         if (!selectedNode) return null;
@@ -722,7 +794,11 @@ function WorkflowPage() {
                                                     activeTab == tab && "bg-primary text-background"
                                                 )
                                             }
-                                            onClick={() => setActiveTab(tab)}
+                                            onClick={() => {
+                                                setActiveTab(tab);
+                                                setIntegrationFilter("all");
+                                                setSearchTerm("");
+                                            }}
                                         >
                                             {tab.charAt(0).toUpperCase() + tab.slice(1)}
                                         </button>
@@ -738,6 +814,43 @@ function WorkflowPage() {
                                         placeholder={`Search ${isTriggerTab ? "triggers" : "actions"}...`}
                                         className="h-10 rounded-xl border-border/50 bg-muted/50 transition-all duration-300 focus-visible:bg-background"
                                     />
+                                    {/* Integration filter chips */}
+                                    <div className="flex items-center gap-1.5 pt-3 flex-wrap">
+                                        <HugeiconsIcon icon={FilterIcon} size={11} className="text-muted-foreground/60 shrink-0 mr-0.5" />
+                                        {INTEGRATIONS.map((ig) => {
+                                            const isActive = integrationFilter === ig.id;
+                                            return (
+                                                <motion.button
+                                                    key={ig.id}
+                                                    layout
+                                                    onClick={() => setIntegrationFilter(ig.id)}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
+                                                    className={cn(
+                                                        "relative flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-200 select-none cursor-pointer",
+                                                        isActive
+                                                            ? "bg-primary text-background shadow-sm"
+                                                            : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                    )}
+                                                >
+                                                    <span className={cn(
+                                                        "flex items-center transition-opacity duration-150",
+                                                        isActive ? "opacity-100" : "opacity-70"
+                                                    )}>
+                                                        {ig.icon}
+                                                    </span>
+                                                    {ig.label}
+                                                    {isActive && (
+                                                        <motion.span
+                                                            layoutId="filter-chip-active"
+                                                            className="absolute inset-0 rounded-full bg-primary -z-10"
+                                                            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                                                        />
+                                                    )}
+                                                </motion.button>
+                                            );
+                                        })}
+                                    </div>
                                 </DialogHeader>
                                 <div className="flex-1 overflow-y-auto px-6 py-2 no-scrollbar">
                                     {loadError ? (
