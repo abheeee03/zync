@@ -10,7 +10,7 @@ import Loader from "@/components/loader";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { LockPasswordIcon, Tick02Icon, Loading03Icon, Cancel01Icon, HelpCircleIcon } from "@hugeicons/core-free-icons";
 import { sileo } from "sileo";
-import { NotionIcon, GithubIcon, GeminiIcon, OpenaiIcon, ClaudeIcon } from "@/components/icons";
+import { NotionIcon, GithubIcon, GeminiIcon, OpenaiIcon, ClaudeIcon, OpenRouterIcon } from "@/components/icons";
 
 type IntegrationStatus = {
     connected: boolean;
@@ -57,6 +57,15 @@ export default function CredentialsPage() {
     const [isConnectingClaude, setIsConnectingClaude] = useState(false);
     const [isClaudeDialogOpen, setIsClaudeDialogOpen] = useState(false);
 
+    const [openrouterStatus, setOpenrouterStatus] = useState<IntegrationStatus>({
+        connected: false,
+        workspaceName: null,
+        loading: true,
+    });
+    const [openrouterApiKey, setOpenrouterApiKey] = useState("");
+    const [isConnectingOpenRouter, setIsConnectingOpenRouter] = useState(false);
+    const [isOpenRouterDialogOpen, setIsOpenRouterDialogOpen] = useState(false);
+
     const fetchStatuses = async () => {
         try {
             const notionRes = await axios.get("/api/notion/status");
@@ -100,6 +109,17 @@ export default function CredentialsPage() {
             });
         } catch {
             setClaudeStatus((prev) => ({ ...prev, loading: false }));
+        }
+
+        try {
+            const openrouterRes = await axios.get("/api/llm/openrouter");
+            setOpenrouterStatus({
+                connected: openrouterRes.data.connected,
+                workspaceName: openrouterRes.data.workspaceName,
+                loading: false,
+            });
+        } catch {
+            setOpenrouterStatus((prev) => ({ ...prev, loading: false }));
         }
 
         try {
@@ -233,7 +253,36 @@ export default function CredentialsPage() {
         }
     };
 
-    const isLoading = notionStatus.loading || geminiStatus.loading || chatgptStatus.loading || claudeStatus.loading || githubStatus.loading;
+    const handleConnectOpenRouter = async () => {
+        if (!openrouterApiKey.trim()) {
+            sileo.error({ title: "Please enter a valid API key" });
+            return;
+        }
+        setIsConnectingOpenRouter(true);
+        try {
+            await axios.post("/api/llm/openrouter", { apiKey: openrouterApiKey });
+            setOpenrouterStatus({ connected: true, workspaceName: "OpenRouter API", loading: false });
+            setOpenrouterApiKey("");
+            setIsOpenRouterDialogOpen(false);
+            sileo.success({ title: "Connected OpenRouter successfully!" });
+        } catch {
+            sileo.error({ title: "Failed to connect OpenRouter" });
+        } finally {
+            setIsConnectingOpenRouter(false);
+        }
+    };
+
+    const handleDisconnectOpenRouter = async () => {
+        try {
+            await axios.delete("/api/llm/openrouter");
+            setOpenrouterStatus({ connected: false, workspaceName: null, loading: false });
+            sileo.success({ title: "Disconnected OpenRouter successfully" });
+        } catch {
+            sileo.error({ title: "Failed to disconnect OpenRouter" });
+        }
+    };
+
+    const isLoading = notionStatus.loading || geminiStatus.loading || chatgptStatus.loading || claudeStatus.loading || openrouterStatus.loading || githubStatus.loading;
 
     if (isLoading) {
         return (
@@ -544,6 +593,84 @@ export default function CredentialsPage() {
                                             className="w-full sm:w-auto"
                                         >
                                             {isConnectingClaude ? (
+                                                <>
+                                                    <HugeiconsIcon icon={Loading03Icon} className="mr-2 h-4 w-4 animate-spin" />
+                                                    Connecting
+                                                </>
+                                            ) : (
+                                                "Save API Key"
+                                            )}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* OpenRouter Card */}
+                <Card className="flex flex-col justify-between border-border/60 bg-muted/10">
+                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                        <div className="space-y-1">
+                            <CardTitle className="text-xl font-bold flex items-center gap-2">
+                                <span className="flex size-7 items-center justify-center rounded bg-violet-950/40 text-violet-400 select-none border border-violet-500/10">
+                                    <OpenRouterIcon className="size-4" />
+                                </span>
+                                OpenRouter
+                            </CardTitle>
+                            <CardDescription className="pt-2 text-xs">
+                                Access GPT-4o, Claude, Llama, Mistral, DeepSeek and 200+ models via a single unified API.
+                            </CardDescription>
+                        </div>
+                        {openrouterStatus.connected && (
+                            <div className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-500">
+                                <HugeiconsIcon icon={Tick02Icon} size={12} />
+                                Connected
+                            </div>
+                        )}
+                    </CardHeader>
+                    <CardContent className="pt-4 flex items-end justify-between">
+                        <div className="text-xs text-muted-foreground">
+                            {openrouterStatus.connected ? (
+                                <span>Status: <strong className="text-foreground">Active Key</strong></span>
+                            ) : (
+                                <span>Not connected</span>
+                            )}
+                        </div>
+                        {openrouterStatus.connected ? (
+                            <Button variant="outline" size="sm" onClick={handleDisconnectOpenRouter} className="text-destructive hover:bg-destructive/10">
+                                Disconnect
+                            </Button>
+                        ) : (
+                            <Dialog open={isOpenRouterDialogOpen} onOpenChange={setIsOpenRouterDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button size="sm">Connect OpenRouter</Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle>Connect OpenRouter API</DialogTitle>
+                                        <DialogDescription>
+                                            Paste your OpenRouter API key to access 200+ models including GPT-4o, Claude, Llama, and Mistral in workflow nodes.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="flex flex-col gap-3 py-2">
+                                        <div className="space-y-1">
+                                            <Input
+                                                id="openrouter-key"
+                                                type="password"
+                                                placeholder="sk-or-..."
+                                                value={openrouterApiKey}
+                                                onChange={(e) => setOpenrouterApiKey(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button
+                                            onClick={handleConnectOpenRouter}
+                                            disabled={isConnectingOpenRouter}
+                                            className="w-full sm:w-auto"
+                                        >
+                                            {isConnectingOpenRouter ? (
                                                 <>
                                                     <HugeiconsIcon icon={Loading03Icon} className="mr-2 h-4 w-4 animate-spin" />
                                                     Connecting

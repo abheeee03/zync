@@ -156,6 +156,56 @@ export const executeAiAction = async (metaData: any, userId: string): Promise<st
         }
 
         return outputText;
+    } else if (provider === "openrouter") {
+        const credential = await prisma.credential.findFirst({
+            where: {
+                userId,
+                name: "openrouter"
+            }
+        });
+
+        if (!credential) {
+            throw new Error("OpenRouter credential not found. Please connect OpenRouter first.");
+        }
+
+        const apiKey = credential.accessToken;
+
+        // Native fetch call to OpenRouter API (OpenAI-compatible endpoint)
+        const response = await fetch(
+            "https://openrouter.ai/api/v1/chat/completions",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`,
+                    "HTTP-Referer": "https://zync.app",
+                    "X-Title": "Zync Workflow"
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [
+                        {
+                            role: "user",
+                            content: prompt
+                        }
+                    ]
+                })
+            }
+        );
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
+        }
+
+        const result = (await response.json()) as any;
+        const outputText = result?.choices?.[0]?.message?.content;
+
+        if (!outputText) {
+            throw new Error(`OpenRouter returned an empty response: ${JSON.stringify(result)}`);
+        }
+
+        return outputText;
     } else {
         throw new Error(`Unsupported AI provider: ${provider}`);
     }

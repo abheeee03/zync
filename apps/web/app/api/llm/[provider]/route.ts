@@ -3,7 +3,7 @@ import { prisma } from "@repo/prisma/client";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-const VALID_PROVIDERS = ["gemini", "chatgpt", "claude"];
+const VALID_PROVIDERS = ["gemini", "chatgpt", "claude", "openrouter"];
 
 type LLMRouteContext = {
     params: Promise<{ provider: string }>;
@@ -30,7 +30,8 @@ export async function GET(
     const displayNames: Record<string, string> = {
         gemini: "Gemini API",
         chatgpt: "OpenAI API",
-        claude: "Anthropic API"
+        claude: "Anthropic API",
+        openrouter: "OpenRouter API",
     };
 
     return NextResponse.json({

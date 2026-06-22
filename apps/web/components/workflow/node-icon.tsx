@@ -16,6 +16,7 @@ import {
     GeminiIcon,
     ClaudeIcon,
     OpenaiIcon,
+    OpenRouterIcon,
 } from "@/components/icons";
 
 type NodeIconProps = {
@@ -79,5 +80,6 @@ export function AiProviderIcon({ provider, size = 14 }: { provider: string; size
     if (provider === "gemini") return <GeminiIcon width={size} height={size} />;
     if (provider === "claude") return <ClaudeIcon width={size} height={size} />;
     if (provider === "chatgpt") return <OpenaiIcon width={size} height={size} />;
+    if (provider === "openrouter") return <OpenRouterIcon width={size} height={size} />;
     return <HugeiconsIcon icon={AiBrain01Icon} size={size} />;
 }

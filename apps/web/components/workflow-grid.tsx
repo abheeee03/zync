@@ -2,9 +2,7 @@
 
 import { motion, Variants } from "framer-motion"
 import WorkFlowCard from "./workflow-card"
-import { sileo } from "sileo"
 import { Button } from "./ui/button"
-import { HugeiconsFreeIcons, HugeiconsIcon, PlusSignIcon } from "@hugeicons/core-free-icons"
 import { useRouter } from "next/navigation"
 
 interface WorkflowGridProps {

@@ -79,7 +79,7 @@ function AiActionContents({ value, onChange, variables }: NodeEditorProps) {
         setIsConnecting(true);
         try {
             await axios.post(`/api/llm/${provider}`, { apiKey });
-            setStatus({ connected: true, workspaceName: provider === "gemini" ? "Gemini API" : provider === "chatgpt" ? "OpenAI API" : "Anthropic API" });
+            setStatus({ connected: true, workspaceName: provider === "gemini" ? "Gemini API" : provider === "chatgpt" ? "OpenAI API" : provider === "openrouter" ? "OpenRouter API" : "Anthropic API" });
             setApiKey("");
         } catch (err) {
             console.error(err);
@@ -103,6 +103,8 @@ function AiActionContents({ value, onChange, variables }: NodeEditorProps) {
             defaultModel = "gpt-4o";
         } else if (newProvider === "claude") {
             defaultModel = "claude-3-5-sonnet";
+        } else if (newProvider === "openrouter") {
+            defaultModel = "openai/gpt-4o";
         }
         onChange({
             ...value,
@@ -130,6 +132,18 @@ function AiActionContents({ value, onChange, variables }: NodeEditorProps) {
                 </>
             );
         }
+        if (provider === "openrouter") {
+            return (
+                <>
+                    <option value="openai/gpt-4o">GPT-4o (Recommended)</option>
+                    <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+                    <option value="meta-llama/llama-3.1-70b-instruct">Llama 3.1 70B</option>
+                    <option value="mistralai/mistral-large">Mistral Large</option>
+                    <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash (Free)</option>
+                    <option value="deepseek/deepseek-r1">DeepSeek R1</option>
+                </>
+            );
+        }
         return (
             <>
                 <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommended)</option>
@@ -142,12 +156,14 @@ function AiActionContents({ value, onChange, variables }: NodeEditorProps) {
     const getProviderLabel = () => {
         if (provider === "chatgpt") return "ChatGPT (OpenAI)";
         if (provider === "claude") return "Claude (Anthropic)";
+        if (provider === "openrouter") return "OpenRouter";
         return "Gemini";
     };
 
     const getApiKeyPlaceholder = () => {
         if (provider === "chatgpt") return "sk-...";
         if (provider === "claude") return "sk-ant-...";
+        if (provider === "openrouter") return "sk-or-...";
         return "AIzaSy...";
     };
 
@@ -165,18 +181,40 @@ function AiActionContents({ value, onChange, variables }: NodeEditorProps) {
                     <option value="gemini">Gemini</option>
                     <option value="chatgpt">ChatGPT (OpenAI)</option>
                     <option value="claude">Claude (Anthropic)</option>
+                    <option value="openrouter">OpenRouter</option>
                 </select>
             </div>
 
             <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Model</label>
-                <select
-                    value={model}
-                    onChange={(e) => onChange({ ...value, model: e.target.value })}
-                    className="h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background focus:ring-2 focus:ring-ring"
-                >
-                    {renderModelOptions()}
-                </select>
+                <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Model</label>
+                    {provider === "openrouter" && (
+                        <a
+                            href="https://openrouter.ai/models"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline"
+                        >
+                            Browse models ↗
+                        </a>
+                    )}
+                </div>
+                {provider === "openrouter" ? (
+                    <Input
+                        value={model}
+                        onChange={(e) => onChange({ ...value, model: e.target.value })}
+                        placeholder="e.g. openai/gpt-4o, meta-llama/llama-3.1-70b-instruct"
+                        className="h-10 font-mono text-xs"
+                    />
+                ) : (
+                    <select
+                        value={model}
+                        onChange={(e) => onChange({ ...value, model: e.target.value })}
+                        className="h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background focus:ring-2 focus:ring-ring"
+                    >
+                        {renderModelOptions()}
+                    </select>
+                )}
             </div>
 
             {loadingStatus ? (
