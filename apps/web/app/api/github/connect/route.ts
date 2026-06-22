@@ -7,7 +7,6 @@ export async function GET() {
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const clientId = process.env.GITHUB_CLIENT_ID;
-    const redirectUri = process.env.GITHUB_REDIRECT_URI ?? "http://localhost:3000/api/github/callback";
 
     if (!clientId) {
         return NextResponse.json({ error: "GitHub OAuth not configured (missing GITHUB_CLIENT_ID)" }, { status: 500 });
@@ -15,7 +14,6 @@ export async function GET() {
 
     const params = new URLSearchParams({
         client_id: clientId,
-        redirect_uri: redirectUri,
         scope: "repo,user",
         state: session.user.id,
     });
