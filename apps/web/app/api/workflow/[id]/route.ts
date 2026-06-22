@@ -229,25 +229,53 @@ export async function POST(
   return NextResponse.json({ error: "Workflow id is required" }, { status: 400 })
   }
 
-  const { name } = await request.json()
+  const body = await request.json()
+  const { name, isActive } = body
 
-  if (!name) {
-  return NextResponse.json({ error: "Name is required" }, { status: 400 })
+  if (name === undefined && isActive === undefined) {
+  return NextResponse.json({ error: "name or isActive is required" }, { status: 400 })
   }
 
   try {
+  const data: Record<string, unknown> = {}
+  if (name !== undefined) data.name = name
+  if (isActive !== undefined) data.isActive = isActive
+
   const workflow = await prisma.workflows.update({
     where: {
       id,
       userId: session.user.id,
     },
-    data: {
-      name,
-    },
+    data,
   })
+
+  // Handle schedule queue when isActive changes
+  if (isActive !== undefined) {
+    const { createWorkflowQueue } = await import("@repo/shared/queue")
+    const workflowQueue = createWorkflowQueue()
+    if (workflowQueue) {
+      const repeatableJobs = await workflowQueue.getRepeatableJobs()
+      for (const job of repeatableJobs) {
+        if (job.name === id) {
+          await workflowQueue.removeRepeatableByKey(job.key)
+        }
+      }
+      const updatedWorkflow = await prisma.workflows.findUnique({
+        where: { id },
+        include: { trigger: { include: { availbleTriggers: true } } },
+      })
+      if (updatedWorkflow?.isActive && updatedWorkflow?.trigger?.availbleTriggers.name.toLowerCase().includes("schedule")) {
+        const cron = (updatedWorkflow.trigger.metaData as Record<string, unknown>)?.cron as string | undefined
+        if (cron) {
+          await workflowQueue.add(id, { workflowId: id }, { repeat: { pattern: cron, immediately: true } })
+        }
+      }
+    }
+  }
+
   return NextResponse.json(workflow)
   } catch (error) {
-  console.error("Failed to update workflow name:", error)
+  console.error("Failed to update workflow:", error)
   return NextResponse.json({ error: "Failed to update workflow" }, { status: 500 })
   }
   }

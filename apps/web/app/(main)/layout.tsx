@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/sidebar"
 import { ReactNode } from "react"
 import { HeaderTitle } from "@/components/header-title"
+import { WorkflowActivateSwitch } from "@/components/workflow-activate-switch"
 
 export default function HomeLayout({children}: {children: ReactNode}) {
   return (
@@ -23,8 +24,9 @@ export default function HomeLayout({children}: {children: ReactNode}) {
             />
             <span className="text-muted-foreground"><HeaderTitle /></span>
           </div>
-          <div className="px-4">
-          <ThemeSwitcher/>
+          <div className="flex items-center gap-3 px-4">
+            <WorkflowActivateSwitch />
+            <ThemeSwitcher/>
           </div>
         </header>
         <div className="flex flex-1 flex-col overflow-hidden">

@@ -119,6 +119,13 @@ export type SavedWorkflowResponse = {
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
+type IntegrationDef = {
+    id: string;
+    label: string;
+    icon: ReactNode;
+    matches: (name: string) => boolean;
+};
+
 const NODE_WIDTH = 240;
 const NODE_VERTICAL_GAP = 140;
 
@@ -292,7 +299,6 @@ function WorkflowPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [integrationFilter, setIntegrationFilter] = useState<string>("all");
     const [isLibraryOpen, setIsLibraryOpen] = useState(false);
-    const [isActive, setIsActive] = useState(false);
 
     const [nodes, setNodes] = useState<WorkflowNode[]>([]);
     const [edges, setEdges] = useState<WorkflowEdge[]>([]);
@@ -314,25 +320,18 @@ function WorkflowPage() {
     const activeItems = isTriggerTab ? availableTriggers : availableActions;
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
-    type IntegrationDef = {
-        id: string;
-        label: string;
-        icon: ReactNode;
-        matches: (name: string) => boolean;
-    };
-
     const INTEGRATIONS: IntegrationDef[] = useMemo(() => [
         {
             id: "all",
             label: "All",
             icon: <HugeiconsIcon icon={Globe02Icon} size={12} />,
-            matches: () => true,
+            matches: (_name: string) => true,
         },
         {
             id: "github",
             label: "GitHub",
             icon: <GithubIcon width={12} height={12} />,
-            matches: (name) =>
+            matches: (name: string) =>
                 name.includes("github") ||
                 name.includes("push") ||
                 name.includes("pull_request") ||
@@ -348,19 +347,19 @@ function WorkflowPage() {
             id: "notion",
             label: "Notion",
             icon: <NotionIcon width={12} height={12} />,
-            matches: (name) => name.includes("notion"),
+            matches: (name: string) => name.includes("notion"),
         },
         {
             id: "ai",
             label: "AI",
             icon: <HugeiconsIcon icon={AiBrain01Icon} size={12} />,
-            matches: (name) => name.includes("ai"),
+            matches: (name: string) => name.includes("ai"),
         },
         {
             id: "core",
             label: "Core",
             icon: <HugeiconsIcon icon={WebhookIcon} size={12} />,
-            matches: (name) =>
+            matches: (name: string) =>
                 name.includes("webhook") ||
                 name.includes("schedule") ||
                 name.includes("manual") ||
@@ -473,7 +472,6 @@ function WorkflowPage() {
             setLoadError(null);
             try {
                 const res = await axios.get<SavedWorkflowResponse>(`/api/workflow/${workflowId}`);
-                setIsActive(res.data.isActive ?? false);
                 const savedNodes = normalizeSavedNodes(res.data.nodes);
                 const savedEdges = normalizeSavedEdges(res.data.edges);
                 const graph =
@@ -689,7 +687,6 @@ function WorkflowPage() {
 
         try {
             await axios.post(`/api/workflow/${workflowId}`, {
-                isActive,
                 trigger: triggerNode
                     ? {
                         triggerId: triggerNode.data.catalogId,
@@ -708,7 +705,7 @@ function WorkflowPage() {
         } catch {
             setSaveStatus("error");
         }
-    }, [edges, nodes, saveStatus, workflowId, isActive]);
+    }, [edges, nodes, saveStatus, workflowId]);
 
     useEffect(() => {
         if (saveStatus !== "idle" || isWorkflowLoading) return;
@@ -723,31 +720,7 @@ function WorkflowPage() {
     return (
         <div className="relative h-full w-full overflow-hidden">
             <div className="fixed top-20 right-10 z-10 flex items-center gap-2 rounded-full  border border-border bg-background/95 p-1.5 shadow-lg backdrop-blur select-none transition-all duration-300">
-                <Button
-                    variant={isActive ? "default" : "outline"}
-                    size="sm"
-                    className="h-8 rounded-full px-4 text-xs font-semibold"
-                    onClick={() => {
-                        if (!isActive) {
-                            const aiNodes = nodes.filter(n => n.data.label.toLowerCase().includes("ai"));
-                            const hasDisconnectedAi = aiNodes.some(aiNode => {
-                                const hasOutgoing = edges.some(e => e.source === aiNode.id);
-                                return !hasOutgoing;
-                            });
-
-                            if (hasDisconnectedAi) {
-                                sileo.error({ title: "Error: AI nodes must be connected to a subsequent node to process their output." });
-                                return;
-                            }
-                        }
-                        setIsActive(!isActive);
-                        markDirty();
-                    }}
-                >
-                    {isActive ? "Activated Workflow" : "Activate Workflow"}
-                </Button>
-
-                <div className="flex items-center gap-2 px-3 border-r border-l border-border mx-1">
+                <div className="flex items-center gap-2 px-3 mx-1">
                     <div className="relative flex items-center justify-center">
                         {saveStatus === "saving" && (
                             <HugeiconsIcon icon={Loading03Icon} className="animate-spin text-muted-foreground" size={16} />
