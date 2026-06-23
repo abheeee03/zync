@@ -30,7 +30,7 @@ You build workflows on a **drag-and-drop canvas** (powered by React Flow), conne
 ```
 [Webhook Trigger] ──▶ [AI Transform] ──▶ [Create Notion Page] ──▶ [Post GitHub Issue]
 ```
-
+#### [Watch Demo](https://x.com/_AbhayHere/status/2069306788462436557?s=20)
 ---
 
 ## 🏗️ Project Structure
