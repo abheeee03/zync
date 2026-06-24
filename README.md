@@ -1,6 +1,6 @@
 <h1>Zync</h1>
 
-<p>Visual workflow automation that connects your favorite tools GitHub, Notion, Google, and AI without writing a single line of glue code.</p>
+<p>Visual workflow automation that connects your favorite tools GitHub, Notion and AI without writing a single line of glue code.</p>
 <img width="1200" height="630" alt="ogimg" src="https://github.com/user-attachments/assets/b2d26115-ff4b-42d2-b0bc-19b7b8d11982" />
 
 <br /> <br />
@@ -30,7 +30,7 @@ You build workflows on a **drag-and-drop canvas** (powered by React Flow), conne
 ```
 [Webhook Trigger] ──▶ [AI Transform] ──▶ [Create Notion Page] ──▶ [Post GitHub Issue]
 ```
-
+#### [Watch Demo](https://x.com/_AbhayHere/status/2069306788462436557?s=20)
 ---
 
 ## 🏗️ Project Structure
