@@ -45,7 +45,7 @@ export function NavUser({
       success: {
         title: "Signed out",
         description: (
-          <span className="text-green-400/70 font-medium!">
+          <span className="font-medium!">
             See you next time, {user.name.split(" ")[0]}!
           </span>
         ),
@@ -53,7 +53,7 @@ export function NavUser({
       error: { title: "Sign out failed" },
     })
 
-    signOutPromise.then(() => router.push("/login")).catch(() => {})
+    signOutPromise.then(() => router.push("/login")).catch(() => { })
   }
 
   return (

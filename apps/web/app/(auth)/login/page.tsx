@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import ThemeSwitcher from "@/components/theme-switcher";
 import { GithubIcon, GoogleIcon } from "@/components/icons";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
@@ -88,14 +89,19 @@ export default function Login() {
         <h1 className="text-3xl">Get Started</h1>
         <p className="text-xl mt-2 text-zinc-600 dark:text-zinc-400 text-center md:text-left">signin to continue your automation journey.</p>
         <div className="border border-border/60 shadow-lg dark:shadow-sm rounded-xl mt-10 h-full w-full flex flex-col gap-4 items-center justify-center p-6 md:p-0">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            disabled={isLoading}
-            onClick={handleGoogleSignIn}
-            className="border w-full max-w-[320px] py-2.5 text-lg rounded-xl border-t shadow-sm flex items-center justify-center gap-2 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors duration-200">
-            Sign in using Google <GoogleIcon />
-          </motion.button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                disabled={true}
+                onClick={() => { }}
+                className="border cursor-not-allowed w-full max-w-[320px] py-2.5 text-lg rounded-xl border-t shadow-sm flex items-center justify-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors duration-200">
+                Sign in using Google <GoogleIcon />
+              </motion.button>
+            </TooltipTrigger>
+            <TooltipContent>currently under maintenance</TooltipContent>
+          </Tooltip>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
